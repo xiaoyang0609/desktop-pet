@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐱 小洋的桌面宠物</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    user-select: none;
+  }
+
+  .container {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 32px;
+    padding: 40px;
+    box-shadow: 0 25px 40px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .pet-area {
+    position: relative;
+    width: 320px;
+    height: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pet {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  .pet:active { transform: scale(0.95); }
+
+  /* Cat body */
+  .cat-body {
+    position: absolute;
+    width: 140px;
+    height: 130px;
+    background: #FFB347;
+    border-radius: 50% 50% 45% 45%;
+    bottom: 30px;
+    left: 30px;
+    box-shadow: inset -20px -10px 0 rgba(0,0,0,0.08);
+  }
+
+  /* Belly */
+  .cat-belly {
+    position: absolute;
+    width: 80px;
+    height: 70px;
+    background: #FFD699;
+    border-radius: 50%;
+    bottom: 55px;
+    left: 60px;
+  }
+
+  /* Head */
+  .cat-head {
+    position: absolute;
+    width: 110px;
+    height: 95px;
+    background: #FFB347;
+    border-radius: 50%;
+    top: 12px;
+    left: 45px;
+    box-shadow: inset -15px -5px 0 rgba(0,0,0,0.08);
+  }
+
+  /* Ears */
+  .ear {
+    position: absolute;
+    width: 0; height: 0;
+    border-left: 18px solid transparent;
+    border-right: 18px solid transparent;
+    border-bottom: 30px solid #FFB347;
+    top: 0;
+  }
+  .ear.left { left: 50px; transform: rotate(-15deg); }
+  .ear.right { left: 102px; transform: rotate(15deg); }
+  .ear-inner {
+    position: absolute;
+    width: 0; height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 18px solid #FF9F9F;
+    top: 8px; left: 8px;
+  }
+
+  /* Eyes */
+  .eye {
+    position: absolute;
+    width: 18px; height: 22px;
+    background: #333;
+    border-radius: 50%;
+    top: 35px;
+    transition: all 0.2s;
+  }
+  .eye.left { left: 25px; }
+  .eye.right { left: 67px; }
+  .eye-shine {
+    position: absolute;
+    width: 6px; height: 10px;
+    background: white;
+    border-radius: 50%;
+    top: 4px; left: 4px;
+  }
+  .eye-closed {
+    height: 3px !important;
+    top: 45px !important;
+    background: #8B6914;
+    width: 16px !important;
+  }
+
+  /* Nose */
+  .nose {
+    position: absolute;
+    width: 0; height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #FF8F8F;
+    top: 52px; left: 47px;
+  }
+
+  /* Mouth */
+  .mouth {
+    position: absolute;
+    width: 30px; height: 20px;
+    top: 58px; left: 40px;
+  }
+  .mouth::before, .mouth::after {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    border: 2px solid #8B6914;
+    border-color: transparent transparent #8B6914 #8B6914;
+    border-radius: 0 0 0 100%;
+  }
+  .mouth::after {
+    left: 16px;
+    border-color: transparent #8B6914 #8B6914 transparent;
+    border-radius: 0 0 100% 0;
+  }
+
+  /* Whiskers */
+  .whisker {
+    position: absolute;
+    height: 2px; background: #8B6914;
+    border-radius: 2px;
+  }
+  .whisker:nth-child(1) { width: 35px; top: 48px; left: -20px; transform: rotate(-5deg); }
+  .whisker:nth-child(2) { width: 38px; top: 55px; left: -22px; transform: rotate(5deg); }
+  .whisker:nth-child(3) { width: 35px; top: 48px; left: 87px; transform: rotate(5deg); }
+  .whisker:nth-child(4) { width: 38px; top: 55px; left: 86px; transform: rotate(-5deg); }
+
+  /* Tail */
+  .tail {
+    position: absolute;
+    width: 12px; height: 60px;
+    background: #FFB347;
+    border-radius: 12px;
+    bottom: 70px; right: 10px;
+    transform-origin: bottom center;
+    transition: transform 0.3s;
+  }
+
+  /* Paws */
+  .paw {
+    position: absolute;
+    width: 20px; height: 12px;
+    background: #FFD699;
+    border-radius: 10px;
+    bottom: 20px;
+  }
+  .paw.left { left: 55px; }
+  .paw.right { left: 125px; }
+
+  /* Speech bubble */
+  .speech {
+    position: absolute;
+    top: -15px;
+    left: 160px;
+    background: white;
+    border-radius: 18px;
+    padding: 10px 16px;
+    font-size: 15px;
+    color: #333;
+    max-width: 200px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    white-space: nowrap;
+  }
+  .speech.show { opacity: 1; }
+  .speech::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 30px;
+    width: 0; height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid white;
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: flex;
+    gap: 24px;
+    margin-top: 20px;
+    padding: 16px 24px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+  }
+
+  .stat {
+    text-align: center;
+    color: white;
+  }
+  .stat-icon { font-size: 24px; }
+  .stat-bar {
+    width: 60px; height: 6px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
+    margin: 4px auto;
+    overflow: hidden;
+  }
+  .stat-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+  .stat-label {
+    font-size: 11px;
+    opacity: 0.8;
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.25);
+    color: white;
+    transition: all 0.2s;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .btn:hover {
+    background: rgba(255,255,255,0.4);
+    transform: translateY(-1px);
+  }
+  .btn:active { transform: scale(0.97); }
+
+  .mood {
+    text-align: center;
+    color: white;
+    font-size: 14px;
+    margin-top: 8px;
+    opacity: 0.9;
+  }
+
+  @keyframes idle-sway {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(3deg); }
+    75% { transform: rotate(-3deg); }
+  }
+  @keyframes tail-wag {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(10deg); }
+  }
+  .wagging .tail { animation: tail-wag 0.5s ease-in-out infinite; }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+  .bouncing .pet { animation: bounce 0.6s ease; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="pet-area" id="petArea">
+    <div class="speech" id="speech">喵~ 你好呀！</div>
+    <div class="pet" id="pet">
+      <div class="cat-head">
+        <div class="ear left"><div class="ear-inner"></div></div>
+        <div class="ear right"><div class="ear-inner"></div></div>
+        <div class="eye left" id="eyeL"><div class="eye-shine"></div></div>
+        <div class="eye right" id="eyeR"><div class="eye-shine"></div></div>
+        <div class="nose"></div>
+        <div class="mouth"></div>
+        <div class="whisker"></div><div class="whisker"></div>
+        <div class="whisker"></div><div class="whisker"></div>
+      </div>
+      <div class="cat-body">
+        <div class="cat-belly"></div>
+        <div class="paw left"></div>
+        <div class="paw right"></div>
+      </div>
+      <div class="tail" id="tail"></div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div class="stat">
+      <div class="stat-icon">😊</div>
+      <div class="stat-bar"><div class="stat-fill" id="happinessFill" style="width:80%;background:#FF6B6B;"></div></div>
+      <div class="stat-label">心情</div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon">🍖</div>
+      <div class="stat-bar"><div class="stat-fill" id="hungerFill" style="width:50%;background:#FFD93D;"></div></div>
+      <div class="stat-label">饱腹</div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-bar"><div class="stat-fill" id="energyFill" style="width:70%;background:#6BCB77;"></div></div>
+      <div class="stat-label">精力</div>
+    </div>
+  </div>
+
+  <div class="mood" id="moodText">😊 心情不错~</div>
+
+  <div class="btn-group">
+    <button class="btn" onclick="feed()">🍣 喂食</button>
+    <button class="btn" onclick="petPet()">🤚 摸头</button>
+    <button class="btn" onclick="play()">🎾 玩耍</button>
+    <button class="btn" onclick="sleep()">💤 睡觉</button>
+  </div>
+</div>
+
+<script>
+  const pet = document.getElementById('pet');
+  const petArea = document.getElementById('petArea');
+  const speech = document.getElementById('speech');
+  const happinessFill = document.getElementById('happinessFill');
+  const hungerFill = document.getElementById('hungerFill');
+  const energyFill = document.getElementById('energyFill');
+  const moodText = document.getElementById('moodText');
+  const eyeL = document.getElementById('eyeL');
+  const eyeR = document.getElementById('eyeR');
+
+  const messages = {
+    happy: ['喵喵~ 😊', '好开心！', '今天真棒~', '撸我吧！🐱', '最喜欢你啦❤️'],
+    hungry: ['饿饿... 🥺', '想吃鱼！🐟', '肚子咕咕叫...', '投喂时间到！'],
+    sleepy: ['好困... 💤', '眼皮打架了...', '想睡觉 Zzz', '呼噜呼噜...'],
+    play: ['好耶！玩起来！', '追球球~ 🎾', '我跳！我跳！', '再来再来！'],
+    pet: ['呼噜呼噜~ 😌', '好舒服~', '不要停~', '再摸摸嘛~', '咕噜咕噜~'],
+    sick: ['难受... 😿', '不舒服...', '呜呜...'],
+    normal: ['喵~', '你好呀！', '在干嘛呢~', '看我干嘛 👀', '歪头？']
+  };
+
+  let state = {
+    happiness: 80,
+    hunger: 50,
+    energy: 70,
+    sleeping: false,
+    messageTimeout: null
+  };
+
+  function getRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function say(msg, duration = 2500) {
+    if (state.messageTimeout) clearTimeout(state.messageTimeout);
+    speech.textContent = msg;
+    speech.classList.add('show');
+    state.messageTimeout = setTimeout(() => speech.classList.remove('show'), duration);
+  }
+
+  function updateStats() {
+    happinessFill.style.width = state.happiness + '%';
+    hungerFill.style.width = state.hunger + '%';
+    energyFill.style.width = state.energy + '%';
+    let msg, mood;
+    if (state.happiness < 20) { mood = '😿 不开心...'; msg = getRandom(messages.sick); }
+    else if (state.hunger < 20) { mood = '🥺 饿了...'; msg = getRandom(messages.hungry); }
+    else if (state.energy < 15) { mood = '💤 好困...'; msg = getRandom(messages.sleepy); }
+    else if (state.happiness > 70) { mood = '😊 心情不错~'; msg = getRandom(messages.happy); }
+    else { mood = '😐 一般般'; msg = getRandom(messages.normal); }
+    moodText.textContent = mood;
+    if (!document.querySelector('.speech.show')) say(msg, 2000);
+  }
+
+  function feed() {
+    if (state.sleeping) { say('呼噜... 别打扰我睡觉... 💤', 2000); return; }
+    state.hunger = Math.min(100, state.hunger + 25);
+    state.happiness = Math.min(100, state.happiness + 5);
+    say('好吃好吃！谢谢~ 🐟', 2000);
+    petPetWag();
+    updateStats();
+  }
+
+  function petPet() {
+    if (state.sleeping) { say('Zzz... 别吵... 💤', 2000); return; }
+    state.happiness = Math.min(100, state.happiness + 10);
+    playEyeCloseAnim();
+    say(getRandom(messages.pet), 2000);
+    petPetWag();
+    updateStats();
+  }
+
+  function play() {
+    if (state.sleeping) { say('Zzz... 不想动... 💤', 2000); return; }
+    if (state.energy < 10) { say('好累... 玩不动了... 😩', 2000); return; }
+    state.happiness = Math.min(100, state.happiness + 12);
+    state.energy = Math.max(0, state.energy - 15);
+    state.hunger = Math.max(0, state.hunger - 5);
+    say(getRandom(messages.play), 2000);
+    playEyeCloseAnim();
+    petArea.classList.add('bouncing');
+    setTimeout(() => petArea.classList.remove('bouncing'), 700);
+    petPetWag();
+    updateStats();
+  }
+
+  function sleep() {
+    if (state.sleeping) {
+      state.sleeping = false;
+      say('睡醒啦！精神满满~ ☀️', 2500);
+      pet.querySelector('.cat-head').style.animation = '';
+      eyeL.classList.remove('eye-closed');
+      eyeR.classList.remove('eye-closed');
+    } else {
+      state.sleeping = true;
+      state.energy = Math.min(100, state.energy + 40);
+      say('呼噜呼噜... 晚安~ 💤', 2500);
+      eyeL.classList.add('eye-closed');
+      eyeR.classList.add('eye-closed');
+      updateStats();
+    }
+  }
+
+  function petPetWag() {
+    petArea.classList.add('wagging');
+    setTimeout(() => petArea.classList.remove('wagging'), 1000);
+  }
+
+  function playEyeCloseAnim() {
+    eyeL.classList.add('eye-closed');
+    eyeR.classList.add('eye-closed');
+    setTimeout(() => {
+      eyeL.classList.remove('eye-closed');
+      eyeR.classList.remove('eye-closed');
+    }, 400);
+  }
+
+  // Click pet
+  pet.addEventListener('click', () => {
+    if (state.sleeping) {
+      say('嗯... 我在睡觉呢 💤', 2000);
+      return;
+    }
+    if (Math.random() > 0.5) petPet();
+    else say(getRandom(messages.normal), 2000);
+    petPetWag();
+  });
+
+  // Auto-decay
+  setInterval(() => {
+    if (state.sleeping) {
+      state.energy = Math.min(100, state.energy + 2);
+    } else {
+      state.happiness = Math.max(0, state.happiness - 0.3);
+      state.hunger = Math.max(0, state.hunger - 0.4);
+      state.energy = Math.max(0, state.energy - 0.3);
+    }
+    updateStats();
+  }, 3000);
+
+  // Random blink
+  setInterval(() => {
+    if (state.sleeping) return;
+    playEyeCloseAnim();
+  }, 3000 + Math.random() * 2000);
+
+  // Random speech
+  setInterval(() => {
+    if (state.sleeping) {
+      if (Math.random() < 0.3) say('呼噜... 💤', 1800);
+      return;
+    }
+    if (Math.random() < 0.2 && !document.querySelector('.speech.show')) {
+      let msgs = state.hunger < 25 ? messages.hungry :
+                 state.energy < 20 ? messages.sleepy :
+                 state.happiness > 70 ? messages.happy : messages.normal;
+      say(getRandom(msgs), 2500);
+    }
+  }, 8000);
+
+  say('喵~ 戳戳看我！🐱', 3000);
+  updateStats();
+</script>
+
+</body>
+</html>
