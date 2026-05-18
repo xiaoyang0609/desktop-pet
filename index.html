@@ -14,6 +14,7 @@
     min-height: 100vh;
     font-family: 'Segoe UI', sans-serif;
     user-select: none;
+    overflow: hidden;
   }
 
   .container {
@@ -23,22 +24,73 @@
     padding: 40px;
     box-shadow: 0 25px 40px rgba(0,0,0,0.2);
     border: 1px solid rgba(255,255,255,0.2);
+    position: relative;
   }
 
   .pet-area {
     position: relative;
-    width: 320px;
-    height: 320px;
+    width: 360px;
+    height: 340px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+    border-radius: 24px;
+  }
+
+  /* Background scene */
+  .scene {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: 24px;
+    background: linear-gradient(180deg, #87CEEB 0%, #E0F0FF 60%, #90C695 60%, #7BB880 100%);
+  }
+  .scene .sun {
+    position: absolute;
+    top: 20px; right: 40px;
+    width: 50px; height: 50px;
+    background: #FFE066;
+    border-radius: 50%;
+    box-shadow: 0 0 40px #FFE06688;
+  }
+  .scene .cloud {
+    position: absolute;
+    background: white;
+    border-radius: 30px;
+    opacity: 0.7;
+  }
+  .scene .cloud.c1 { width: 60px; height: 20px; top: 30px; left: 30px; animation: cloud-drift 20s linear infinite; }
+  .scene .cloud.c2 { width: 80px; height: 24px; top: 60px; left: 180px; animation: cloud-drift 25s linear infinite; }
+
+  @keyframes cloud-drift {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(30px); }
+    100% { transform: translateX(0); }
+  }
+
+  .scene .ground {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 80px;
+    background: linear-gradient(0deg, #6FB06F, #90C695);
+    border-radius: 50% 50% 0 0 / 30% 30% 0 0;
+  }
+
+  .pet-wrapper {
+    position: absolute;
+    bottom: 72px;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: left 0.6s ease, bottom 0.6s ease;
+    z-index: 2;
   }
 
   .pet {
     position: relative;
-    width: 200px;
-    height: 200px;
+    width: 140px;
+    height: 150px;
     cursor: pointer;
     transition: transform 0.15s;
   }
@@ -48,131 +100,148 @@
   /* Cat body */
   .cat-body {
     position: absolute;
-    width: 140px;
-    height: 130px;
+    width: 100px;
+    height: 92px;
     background: #FFB347;
     border-radius: 50% 50% 45% 45%;
-    bottom: 30px;
-    left: 30px;
-    box-shadow: inset -20px -10px 0 rgba(0,0,0,0.08);
+    bottom: 18px;
+    left: 20px;
+    box-shadow: inset -14px -8px 0 rgba(0,0,0,0.08);
   }
 
   /* Belly */
   .cat-belly {
     position: absolute;
-    width: 80px;
-    height: 70px;
+    width: 56px;
+    height: 50px;
     background: #FFD699;
     border-radius: 50%;
-    bottom: 55px;
-    left: 60px;
+    bottom: 40px;
+    left: 42px;
   }
 
   /* Head */
   .cat-head {
     position: absolute;
-    width: 110px;
-    height: 95px;
+    width: 80px;
+    height: 68px;
     background: #FFB347;
     border-radius: 50%;
-    top: 12px;
-    left: 45px;
-    box-shadow: inset -15px -5px 0 rgba(0,0,0,0.08);
+    top: 6px;
+    left: 30px;
+    box-shadow: inset -10px -4px 0 rgba(0,0,0,0.08);
+    z-index: 1;
   }
 
   /* Ears */
   .ear {
     position: absolute;
     width: 0; height: 0;
-    border-left: 18px solid transparent;
-    border-right: 18px solid transparent;
-    border-bottom: 30px solid #FFB347;
-    top: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-bottom: 24px solid #FFB347;
+    top: -4px;
   }
-  .ear.left { left: 50px; transform: rotate(-15deg); }
-  .ear.right { left: 102px; transform: rotate(15deg); }
+  .ear.left { left: 8px; transform: rotate(-15deg); }
+  .ear.right { left: 52px; transform: rotate(15deg); }
   .ear-inner {
     position: absolute;
     width: 0; height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 18px solid #FF9F9F;
-    top: 8px; left: 8px;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 14px solid #FF9F9F;
+    top: 6px; left: 6px;
   }
 
   /* Eyes */
   .eye {
     position: absolute;
-    width: 18px; height: 22px;
+    width: 13px; height: 16px;
     background: #333;
     border-radius: 50%;
-    top: 35px;
+    top: 24px;
     transition: all 0.2s;
   }
-  .eye.left { left: 25px; }
-  .eye.right { left: 67px; }
+  .eye.left { left: 16px; }
+  .eye.right { left: 50px; }
   .eye-shine {
     position: absolute;
-    width: 6px; height: 10px;
+    width: 4px; height: 8px;
     background: white;
     border-radius: 50%;
-    top: 4px; left: 4px;
+    top: 3px; left: 3px;
   }
   .eye-closed {
-    height: 3px !important;
-    top: 45px !important;
+    height: 2px !important;
+    top: 32px !important;
     background: #8B6914;
-    width: 16px !important;
+    width: 12px !important;
+  }
+  .eye-happy {
+    height: 3px !important;
+    top: 31px !important;
+    background: #8B6914;
+    width: 14px !important;
+    border-radius: 3px;
   }
 
   /* Nose */
   .nose {
     position: absolute;
     width: 0; height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 8px solid #FF8F8F;
-    top: 52px; left: 47px;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #FF8F8F;
+    top: 36px; left: 35px;
   }
 
   /* Mouth */
   .mouth {
     position: absolute;
-    width: 30px; height: 20px;
-    top: 58px; left: 40px;
+    width: 22px; height: 14px;
+    top: 40px; left: 29px;
   }
   .mouth::before, .mouth::after {
     content: '';
     position: absolute;
-    width: 14px; height: 14px;
+    width: 10px; height: 10px;
     border: 2px solid #8B6914;
     border-color: transparent transparent #8B6914 #8B6914;
     border-radius: 0 0 0 100%;
   }
   .mouth::after {
-    left: 16px;
+    left: 12px;
     border-color: transparent #8B6914 #8B6914 transparent;
     border-radius: 0 0 100% 0;
   }
+  .mouth-open {
+    display: none;
+    position: absolute;
+    width: 12px; height: 10px;
+    background: #8B6914;
+    border-radius: 0 0 50% 50%;
+    top: 42px; left: 34px;
+  }
+  .mouth-open.show { display: block; }
 
   /* Whiskers */
   .whisker {
     position: absolute;
-    height: 2px; background: #8B6914;
+    height: 1.5px; background: #8B6914;
     border-radius: 2px;
   }
-  .whisker:nth-child(1) { width: 35px; top: 48px; left: -20px; transform: rotate(-5deg); }
-  .whisker:nth-child(2) { width: 38px; top: 55px; left: -22px; transform: rotate(5deg); }
-  .whisker:nth-child(3) { width: 35px; top: 48px; left: 87px; transform: rotate(5deg); }
-  .whisker:nth-child(4) { width: 38px; top: 55px; left: 86px; transform: rotate(-5deg); }
+  .whisker:nth-child(1) { width: 26px; top: 32px; left: -14px; transform: rotate(-5deg); }
+  .whisker:nth-child(2) { width: 28px; top: 38px; left: -16px; transform: rotate(5deg); }
+  .whisker:nth-child(3) { width: 26px; top: 32px; left: 68px; transform: rotate(5deg); }
+  .whisker:nth-child(4) { width: 28px; top: 38px; left: 66px; transform: rotate(-5deg); }
 
   /* Tail */
   .tail {
     position: absolute;
-    width: 12px; height: 60px;
+    width: 10px; height: 48px;
     background: #FFB347;
-    border-radius: 12px;
-    bottom: 70px; right: 10px;
+    border-radius: 10px;
+    bottom: 50px; right: 8px;
     transform-origin: bottom center;
     transition: transform 0.3s;
   }
@@ -180,35 +249,36 @@
   /* Paws */
   .paw {
     position: absolute;
-    width: 20px; height: 12px;
+    width: 16px; height: 10px;
     background: #FFD699;
-    border-radius: 10px;
-    bottom: 20px;
+    border-radius: 8px;
+    bottom: 12px;
   }
-  .paw.left { left: 55px; }
-  .paw.right { left: 125px; }
+  .paw.left { left: 36px; }
+  .paw.right { left: 88px; }
 
   /* Speech bubble */
   .speech {
     position: absolute;
-    top: -15px;
-    left: 160px;
+    top: -24px;
+    left: 120px;
     background: white;
     border-radius: 18px;
-    padding: 10px 16px;
-    font-size: 15px;
+    padding: 8px 14px;
+    font-size: 14px;
     color: #333;
-    max-width: 200px;
+    max-width: 220px;
     opacity: 0;
     transition: opacity 0.3s;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     white-space: nowrap;
+    z-index: 10;
   }
   .speech.show { opacity: 1; }
   .speech::after {
     content: '';
     position: absolute;
-    bottom: -8px; left: 30px;
+    bottom: -8px; left: 24px;
     width: 0; height: 0;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
@@ -218,9 +288,9 @@
   /* Status bar */
   .status-bar {
     display: flex;
-    gap: 24px;
-    margin-top: 20px;
-    padding: 16px 24px;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 12px 18px;
     background: rgba(255,255,255,0.2);
     border-radius: 16px;
     backdrop-filter: blur(10px);
@@ -229,14 +299,17 @@
   .stat {
     text-align: center;
     color: white;
+    flex: 1;
   }
-  .stat-icon { font-size: 24px; }
+  .stat-icon { font-size: 20px; }
   .stat-bar {
-    width: 60px; height: 6px;
+    width: 100%;
+    height: 5px;
     background: rgba(255,255,255,0.3);
     border-radius: 3px;
-    margin: 4px auto;
+    margin: 3px auto;
     overflow: hidden;
+    max-width: 70px;
   }
   .stat-fill {
     height: 100%;
@@ -244,23 +317,23 @@
     transition: width 0.5s ease;
   }
   .stat-label {
-    font-size: 11px;
+    font-size: 10px;
     opacity: 0.8;
   }
 
   .btn-group {
     display: flex;
-    gap: 8px;
-    margin-top: 16px;
+    gap: 6px;
+    margin-top: 12px;
     flex-wrap: wrap;
     justify-content: center;
   }
 
   .btn {
-    padding: 8px 18px;
+    padding: 7px 14px;
     border: none;
     border-radius: 12px;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
     background: rgba(255,255,255,0.25);
     color: white;
@@ -277,51 +350,128 @@
   .mood {
     text-align: center;
     color: white;
-    font-size: 14px;
-    margin-top: 8px;
+    font-size: 13px;
+    margin-top: 6px;
     opacity: 0.9;
   }
 
-  @keyframes idle-sway {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(3deg); }
-    75% { transform: rotate(-3deg); }
+  /* Party effects */
+  .particle {
+    position: absolute;
+    pointer-events: none;
+    font-size: 20px;
+    z-index: 20;
+    animation: particle-fly 1.2s ease-out forwards;
   }
+  @keyframes particle-fly {
+    0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+    100% { opacity: 0; transform: translateY(-80px) scale(1.5) rotate(40deg); }
+  }
+
+  .star-particle {
+    position: absolute;
+    pointer-events: none;
+    z-index: 20;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    animation: star-burst 0.8s ease-out forwards;
+  }
+  @keyframes star-burst {
+    0% { opacity: 1; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+  }
+
   @keyframes tail-wag {
     0%, 100% { transform: rotate(0deg); }
-    50% { transform: rotate(10deg); }
+    50% { transform: rotate(12deg); }
   }
-  .wagging .tail { animation: tail-wag 0.5s ease-in-out infinite; }
+  .wagging .tail { animation: tail-wag 0.4s ease-in-out infinite; }
 
   @keyframes bounce {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-15px); }
+    30% { transform: translateY(-20px); }
+    50% { transform: translateY(-10px); }
+    70% { transform: translateY(-18px); }
   }
-  .bouncing .pet { animation: bounce 0.6s ease; }
+  .bouncing .pet { animation: bounce 0.5s ease; }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .spinning .pet { animation: spin 0.6s ease; }
+
+  @keyframes sleep-breathe {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.03); }
+  }
+  .sleeping .cat-body, .sleeping .cat-head {
+    animation: sleep-breathe 3s ease-in-out infinite;
+  }
+
+  .zzz {
+    position: absolute;
+    top: -10px; left: 70px;
+    font-size: 16px;
+    opacity: 0;
+    transition: opacity 0.5s;
+    z-index: 5;
+  }
+  .zzz.show { opacity: 1; animation: zzz-float 2s ease-in-out infinite; }
+  @keyframes zzz-float {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-5px, -8px); }
+  }
+
+  /* Treat item */
+  .treat-item {
+    position: absolute;
+    font-size: 28px;
+    z-index: 3;
+    animation: treat-fall 1.5s ease-in forwards;
+    pointer-events: none;
+  }
+  @keyframes treat-fall {
+    0% { opacity: 1; transform: translateY(-30px) scale(0.5); }
+    50% { opacity: 1; transform: translateY(0) scale(1.2); }
+    100% { opacity: 0; transform: translateY(10px) scale(1); }
+  }
 </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="container">
   <div class="pet-area" id="petArea">
+    <div class="scene">
+      <div class="sun"></div>
+      <div class="cloud c1"></div>
+      <div class="cloud c2"></div>
+      <div class="ground"></div>
+    </div>
+
     <div class="speech" id="speech">喵~ 你好呀！</div>
-    <div class="pet" id="pet">
-      <div class="cat-head">
-        <div class="ear left"><div class="ear-inner"></div></div>
-        <div class="ear right"><div class="ear-inner"></div></div>
-        <div class="eye left" id="eyeL"><div class="eye-shine"></div></div>
-        <div class="eye right" id="eyeR"><div class="eye-shine"></div></div>
-        <div class="nose"></div>
-        <div class="mouth"></div>
-        <div class="whisker"></div><div class="whisker"></div>
-        <div class="whisker"></div><div class="whisker"></div>
+    <div class="zzz" id="zzz">💤 Zzz...</div>
+
+    <div class="pet-wrapper" id="petWrapper">
+      <div class="pet" id="pet">
+        <div class="cat-head">
+          <div class="ear left"><div class="ear-inner"></div></div>
+          <div class="ear right"><div class="ear-inner"></div></div>
+          <div class="eye left" id="eyeL"><div class="eye-shine"></div></div>
+          <div class="eye right" id="eyeR"><div class="eye-shine"></div></div>
+          <div class="nose"></div>
+          <div class="mouth"></div>
+          <div class="mouth-open" id="mouthOpen"></div>
+          <div class="whisker"></div><div class="whisker"></div>
+          <div class="whisker"></div><div class="whisker"></div>
+        </div>
+        <div class="cat-body">
+          <div class="cat-belly"></div>
+          <div class="paw left"></div>
+          <div class="paw right"></div>
+        </div>
+        <div class="tail" id="tail"></div>
       </div>
-      <div class="cat-body">
-        <div class="cat-belly"></div>
-        <div class="paw left"></div>
-        <div class="paw right"></div>
-      </div>
-      <div class="tail" id="tail"></div>
     </div>
   </div>
 
@@ -341,28 +491,41 @@
       <div class="stat-bar"><div class="stat-fill" id="energyFill" style="width:70%;background:#6BCB77;"></div></div>
       <div class="stat-label">精力</div>
     </div>
+    <div class="stat">
+      <div class="stat-icon">❤️</div>
+      <div class="stat-bar"><div class="stat-fill" id="loveFill" style="width:0%;background:#FF69B4;"></div></div>
+      <div class="stat-label">亲密度</div>
+    </div>
   </div>
 
   <div class="mood" id="moodText">😊 心情不错~</div>
 
   <div class="btn-group">
-    <button class="btn" onclick="feed()">🍣 喂食</button>
+    <button class="btn" onclick="feed()">🐟 喂食</button>
+    <button class="btn" onclick="feedTreat('🍣')">🍣 三文鱼</button>
+    <button class="btn" onclick="feedTreat('🥛')">🥛 牛奶</button>
     <button class="btn" onclick="petPet()">🤚 摸头</button>
     <button class="btn" onclick="play()">🎾 玩耍</button>
-    <button class="btn" onclick="sleep()">💤 睡觉</button>
+    <button class="btn" onclick="toggleSleep()">💤 睡觉</button>
+    <button class="btn" onclick="dance()">💃 跳舞</button>
+    <button class="btn" onclick="trick()">🎪 表演</button>
   </div>
 </div>
 
 <script>
   const pet = document.getElementById('pet');
   const petArea = document.getElementById('petArea');
+  const petWrapper = document.getElementById('petWrapper');
   const speech = document.getElementById('speech');
+  const zzz = document.getElementById('zzz');
   const happinessFill = document.getElementById('happinessFill');
   const hungerFill = document.getElementById('hungerFill');
   const energyFill = document.getElementById('energyFill');
+  const loveFill = document.getElementById('loveFill');
   const moodText = document.getElementById('moodText');
   const eyeL = document.getElementById('eyeL');
   const eyeR = document.getElementById('eyeR');
+  const mouthOpen = document.getElementById('mouthOpen');
 
   const messages = {
     happy: ['喵喵~ 😊', '好开心！', '今天真棒~', '撸我吧！🐱', '最喜欢你啦❤️'],
@@ -370,113 +533,242 @@
     sleepy: ['好困... 💤', '眼皮打架了...', '想睡觉 Zzz', '呼噜呼噜...'],
     play: ['好耶！玩起来！', '追球球~ 🎾', '我跳！我跳！', '再来再来！'],
     pet: ['呼噜呼噜~ 😌', '好舒服~', '不要停~', '再摸摸嘛~', '咕噜咕噜~'],
-    sick: ['难受... 😿', '不舒服...', '呜呜...'],
-    normal: ['喵~', '你好呀！', '在干嘛呢~', '看我干嘛 👀', '歪头？']
-  };
-
-  let state = {
-    happiness: 80,
-    hunger: 50,
-    energy: 70,
-    sleeping: false,
-    messageTimeout: null
+    sick: ['难受... 😿', '不舒服...', '呜呜...', '要抱抱~ 🥺'],
+    normal: ['喵~', '你好呀！', '在干嘛呢~', '看我干嘛 👀', '歪头？'],
+    feed: ['好吃好吃！', '还要！还要！', '好满足~ 🥰', '满血复活！'],
+    love: ['最喜欢你啦！❤️', '你最好啦~', '永远在一起！', '蹭蹭~ 🥹'],
+    dance: ['转圈圈~ 💫', '看我舞姿！', '再来个旋转！'],
+    trick: ['锵锵！🎉', '我厉害吧！', '给点奖励呗~']
   };
 
   function getRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  let state = {
+    happiness: 80, hunger: 50, energy: 70, love: 0,
+    sleeping: false, messageTimeout: null,
+    petCount: 0, feedCount: 0, treatCount: 0, playCount: 0, lastActive: Date.now()
+  };
 
   function say(msg, duration = 2500) {
     if (state.messageTimeout) clearTimeout(state.messageTimeout);
     speech.textContent = msg;
     speech.classList.add('show');
+    speech.style.whiteSpace = msg.length > 15 ? 'normal' : 'nowrap';
     state.messageTimeout = setTimeout(() => speech.classList.remove('show'), duration);
+  }
+
+  function spawnParticles(x, y, emoji = '❤️', count = 6) {
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement('div');
+      el.className = 'particle';
+      el.textContent = emoji;
+      el.style.left = (x + (Math.random() - 0.5) * 40) + 'px';
+      el.style.top = (y + (Math.random() - 0.5) * 20) + 'px';
+      el.style.animationDuration = (0.8 + Math.random() * 0.6) + 's';
+      petArea.appendChild(el);
+      setTimeout(() => el.remove(), 1500);
+    }
+  }
+
+  function spawnStars(x, y, count = 8) {
+    const colors = ['#FFD700', '#FF69B4', '#87CEEB', '#98FB98', '#DDA0DD'];
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement('div');
+      el.className = 'star-particle';
+      el.style.background = colors[Math.floor(Math.random() * colors.length)];
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      const angle = (Math.PI * 2 / count) * i + Math.random() * 0.5;
+      const dist = 30 + Math.random() * 30;
+      el.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+      el.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+      el.style.animationDuration = (0.5 + Math.random() * 0.4) + 's';
+      petArea.appendChild(el);
+      setTimeout(() => el.remove(), 1000);
+    }
+  }
+
+  function celebrate(x, y) {
+    spawnParticles(x, y, '❤️', 6);
+    spawnParticles(x, y, '⭐', 4);
+    spawnStars(x, y, 10);
+  }
+
+  function dropTreat(emoji) {
+    const el = document.createElement('div');
+    el.className = 'treat-item';
+    el.textContent = emoji;
+    el.style.left = (120 + Math.random() * 60) + 'px';
+    el.style.top = '30px';
+    petArea.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+  }
+
+  function closeEyes() { eyeL.classList.add('eye-closed'); eyeR.classList.add('eye-closed'); }
+  function openEyes() {
+    eyeL.classList.remove('eye-closed', 'eye-happy');
+    eyeR.classList.remove('eye-closed', 'eye-happy');
+  }
+  function happyEyes() {
+    openEyes();
+    eyeL.classList.add('eye-happy');
+    eyeR.classList.add('eye-happy');
+  }
+  function blink() {
+    if (state.sleeping) return;
+    closeEyes();
+    setTimeout(openEyes, 250);
+  }
+
+  function wag(duration = 800) {
+    petArea.classList.add('wagging');
+    setTimeout(() => petArea.classList.remove('wagging'), duration);
+  }
+
+  function meow() {
+    mouthOpen.classList.add('show');
+    setTimeout(() => mouthOpen.classList.remove('show'), 600);
   }
 
   function updateStats() {
     happinessFill.style.width = state.happiness + '%';
     hungerFill.style.width = state.hunger + '%';
     energyFill.style.width = state.energy + '%';
-    let msg, mood;
-    if (state.happiness < 20) { mood = '😿 不开心...'; msg = getRandom(messages.sick); }
-    else if (state.hunger < 20) { mood = '🥺 饿了...'; msg = getRandom(messages.hungry); }
-    else if (state.energy < 15) { mood = '💤 好困...'; msg = getRandom(messages.sleepy); }
-    else if (state.happiness > 70) { mood = '😊 心情不错~'; msg = getRandom(messages.happy); }
-    else { mood = '😐 一般般'; msg = getRandom(messages.normal); }
-    moodText.textContent = mood;
-    if (!document.querySelector('.speech.show')) say(msg, 2000);
+    loveFill.style.width = Math.min(100, state.love) + '%';
+    let msg;
+    if (state.happiness < 15) msg = getRandom(messages.sick);
+    else if (state.hunger < 15) msg = getRandom(messages.hungry);
+    else if (state.energy < 10) msg = getRandom(messages.sleepy);
+    else if (state.happiness > 75) msg = getRandom(messages.happy);
+    else msg = getRandom(messages.normal);
+    const emoji = state.sleeping ? '💤' : (state.happiness < 20 ? '😿' : state.happiness > 70 ? '😊' : '😐');
+    moodText.textContent = emoji + ' ' + (state.sleeping ? 'zzz... 💤' : msg);
   }
 
   function feed() {
     if (state.sleeping) { say('呼噜... 别打扰我睡觉... 💤', 2000); return; }
-    state.hunger = Math.min(100, state.hunger + 25);
+    state.hunger = Math.min(100, state.hunger + 20);
     state.happiness = Math.min(100, state.happiness + 5);
-    say('好吃好吃！谢谢~ 🐟', 2000);
-    petPetWag();
+    state.feedCount++;
+    state.lastActive = Date.now();
+    say(getRandom(messages.feed), 2000);
+    wag(); dropTreat('🐟');
+    setTimeout(blink, 600);
+    updateStats();
+  }
+
+  function feedTreat(treat) {
+    if (state.sleeping) { say('呼噜... 别打扰我睡觉... 💤', 2000); return; }
+    state.hunger = Math.min(100, state.hunger + 12);
+    state.happiness = Math.min(100, state.happiness + 8);
+    state.love = Math.min(100, state.love + 2);
+    state.treatCount++;
+    state.lastActive = Date.now();
+    say(getRandom(['哇！'+treat+'！', treat+'好好吃~', '最爱吃这个了！🥰']), 2000);
+    wag(600); dropTreat(treat);
+    happyEyes();
+    setTimeout(blink, 600);
     updateStats();
   }
 
   function petPet() {
     if (state.sleeping) { say('Zzz... 别吵... 💤', 2000); return; }
-    state.happiness = Math.min(100, state.happiness + 10);
-    playEyeCloseAnim();
+    state.happiness = Math.min(100, state.happiness + 8);
+    state.love = Math.min(100, state.love + 3);
+    state.petCount++;
+    state.lastActive = Date.now();
     say(getRandom(messages.pet), 2000);
-    petPetWag();
+    wag(800);
+    happyEyes();
+    setTimeout(blink, 500);
     updateStats();
   }
 
   function play() {
     if (state.sleeping) { say('Zzz... 不想动... 💤', 2000); return; }
-    if (state.energy < 10) { say('好累... 玩不动了... 😩', 2000); return; }
+    if (state.energy < 8) { say('好累... 玩不动了... 😩', 2000); return; }
     state.happiness = Math.min(100, state.happiness + 12);
     state.energy = Math.max(0, state.energy - 15);
     state.hunger = Math.max(0, state.hunger - 5);
+    state.love = Math.min(100, state.love + 1);
+    state.playCount++;
+    state.lastActive = Date.now();
     say(getRandom(messages.play), 2000);
-    playEyeCloseAnim();
+    blink();
     petArea.classList.add('bouncing');
     setTimeout(() => petArea.classList.remove('bouncing'), 700);
-    petPetWag();
+    wag(600);
     updateStats();
   }
 
-  function sleep() {
+  function toggleSleep() {
     if (state.sleeping) {
       state.sleeping = false;
+      state.energy = Math.min(100, state.energy + 40);
       say('睡醒啦！精神满满~ ☀️', 2500);
-      pet.querySelector('.cat-head').style.animation = '';
-      eyeL.classList.remove('eye-closed');
-      eyeR.classList.remove('eye-closed');
+      zzz.classList.remove('show');
+      petWrapper.classList.remove('sleeping');
+      openEyes();
     } else {
       state.sleeping = true;
-      state.energy = Math.min(100, state.energy + 40);
+      state.energy = Math.min(100, state.energy + 30);
       say('呼噜呼噜... 晚安~ 💤', 2500);
-      eyeL.classList.add('eye-closed');
-      eyeR.classList.add('eye-closed');
-      updateStats();
+      closeEyes();
+      zzz.classList.add('show');
+      petWrapper.classList.add('sleeping');
     }
+    updateStats();
   }
 
-  function petPetWag() {
-    petArea.classList.add('wagging');
-    setTimeout(() => petArea.classList.remove('wagging'), 1000);
+  function dance() {
+    if (state.sleeping) { say('Zzz... 跳不动... 💤', 2000); return; }
+    if (state.energy < 15) { say('太累了，跳不动 💫', 2000); return; }
+    state.energy = Math.max(0, state.energy - 10);
+    state.happiness = Math.min(100, state.happiness + 8);
+    state.lastActive = Date.now();
+    say(getRandom(messages.dance), 2500);
+    petArea.classList.add('spinning');
+    celebrate(120, 60);
+    setTimeout(() => petArea.classList.remove('spinning'), 700);
+    setTimeout(blink, 400);
+    updateStats();
   }
 
-  function playEyeCloseAnim() {
-    eyeL.classList.add('eye-closed');
-    eyeR.classList.add('eye-closed');
-    setTimeout(() => {
-      eyeL.classList.remove('eye-closed');
-      eyeR.classList.remove('eye-closed');
-    }, 400);
+  function trick() {
+    if (state.sleeping) { say('Zzz... 明天再表演... 💤', 2000); return; }
+    if (state.energy < 12) { say('好累，表演不动了 🥱', 2000); return; }
+    state.energy = Math.max(0, state.energy - 12);
+    state.happiness = Math.min(100, state.happiness + 10);
+    state.love = Math.min(100, state.love + 2);
+    state.lastActive = Date.now();
+    say(getRandom(messages.trick), 2500);
+    celebrate(120, 60);
+    meow();
+    // Quick bounce
+    petArea.classList.add('bouncing');
+    setTimeout(() => petArea.classList.remove('bouncing'), 500);
+    updateStats();
   }
 
   // Click pet
-  pet.addEventListener('click', () => {
+  pet.addEventListener('click', (e) => {
     if (state.sleeping) {
-      say('嗯... 我在睡觉呢 💤', 2000);
+      if (Math.random() > 0.5) { state.sleeping = false; toggleSleep(); }
+      else { say('嗯... 我在睡觉呢 💤', 2000); }
       return;
     }
-    if (Math.random() > 0.5) petPet();
-    else say(getRandom(messages.normal), 2000);
-    petPetWag();
+    const rect = petArea.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    if (Math.random() > 0.6) {
+      petPet();
+      celebrate(x, y);
+    } else {
+      say(getRandom(messages.normal), 2000);
+      wag();
+      meow();
+    }
+    updateStats();
   });
 
   // Auto-decay
@@ -494,7 +786,7 @@
   // Random blink
   setInterval(() => {
     if (state.sleeping) return;
-    playEyeCloseAnim();
+    blink();
   }, 3000 + Math.random() * 2000);
 
   // Random speech
@@ -503,7 +795,7 @@
       if (Math.random() < 0.3) say('呼噜... 💤', 1800);
       return;
     }
-    if (Math.random() < 0.2 && !document.querySelector('.speech.show')) {
+    if (Math.random() < 0.2 && !speech.classList.contains('show')) {
       let msgs = state.hunger < 25 ? messages.hungry :
                  state.energy < 20 ? messages.sleepy :
                  state.happiness > 70 ? messages.happy : messages.normal;
@@ -514,6 +806,5 @@
   say('喵~ 戳戳看我！🐱', 3000);
   updateStats();
 </script>
-
 </body>
 </html>
