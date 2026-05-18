@@ -37,7 +37,6 @@
     overflow: hidden;
   }
 
-  /* Sun */
   .sun {
     position: absolute;
     top: 18px; right: 35px;
@@ -48,7 +47,6 @@
     z-index: 1;
   }
 
-  /* Cloud */
   .cloud {
     position: absolute;
     background: white;
@@ -59,7 +57,23 @@
   .cloud.c1 { width: 55px; height: 18px; top: 28px; left: 25px; }
   .cloud.c2 { width: 70px; height: 20px; top: 55px; left: 160px; }
 
-  /* Cat wrapper (for positioning on ground) */
+  .level-badge {
+    position: absolute;
+    top: 10px; left: 10px;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #8B4513;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .level-title { font-size: 10px; opacity: 0.8; margin-left: 2px; }
+
   .cat-wrapper {
     position: absolute;
     bottom: 68px;
@@ -77,7 +91,6 @@
   }
   .pet:active { transform: scale(0.95); }
 
-  /* Cat body */
   .cat-body {
     position: absolute;
     width: 110px;
@@ -98,7 +111,6 @@
     left: 48px;
   }
 
-  /* Head */
   .cat-head {
     position: absolute;
     width: 90px;
@@ -111,7 +123,6 @@
     z-index: 1;
   }
 
-  /* Ears */
   .ear {
     position: absolute;
     width: 0; height: 0;
@@ -131,7 +142,6 @@
     top: 7px; left: 6px;
   }
 
-  /* Eyes */
   .eye {
     position: absolute;
     width: 14px; height: 18px;
@@ -149,22 +159,9 @@
     border-radius: 50%;
     top: 3px; left: 3px;
   }
-  .eye-closed {
-    height: 2px !important;
-    top: 36px !important;
-    background: #8B6914;
-    width: 13px !important;
-    border-radius: 2px;
-  }
-  .eye-happy {
-    height: 3px !important;
-    top: 35px !important;
-    background: #8B6914;
-    width: 15px !important;
-    border-radius: 3px;
-  }
+  .eye-closed { height: 2px !important; top: 36px !important; background: #8B6914; width: 13px !important; border-radius: 2px; }
+  .eye-happy { height: 3px !important; top: 35px !important; background: #8B6914; width: 15px !important; border-radius: 3px; }
 
-  /* Nose */
   .nose {
     position: absolute;
     width: 0; height: 0;
@@ -174,7 +171,6 @@
     top: 42px; left: 39px;
   }
 
-  /* Mouth */
   .mouth {
     position: absolute;
     width: 24px; height: 16px;
@@ -188,13 +184,8 @@
     border-color: transparent transparent #8B6914 #8B6914;
     border-radius: 0 0 0 100%;
   }
-  .mouth::after {
-    left: 13px;
-    border-color: transparent #8B6914 #8B6914 transparent;
-    border-radius: 0 0 100% 0;
-  }
+  .mouth::after { left: 13px; border-color: transparent #8B6914 #8B6914 transparent; border-radius: 0 0 100% 0; }
 
-  /* Whiskers */
   .whisker {
     position: absolute;
     height: 2px; background: #8B6914;
@@ -205,7 +196,6 @@
   .whisker:nth-child(3) { width: 28px; top: 38px; left: 78px; transform: rotate(5deg); }
   .whisker:nth-child(4) { width: 30px; top: 44px; left: 76px; transform: rotate(-5deg); }
 
-  /* Tail */
   .tail {
     position: absolute;
     width: 11px; height: 52px;
@@ -216,7 +206,6 @@
     transition: transform 0.3s;
   }
 
-  /* Paws */
   .paw {
     position: absolute;
     width: 18px; height: 11px;
@@ -227,7 +216,6 @@
   .paw.left { left: 42px; }
   .paw.right { left: 100px; }
 
-  /* Speech - positioned relative to cat-wrapper, centered */
   .speech {
     position: absolute;
     top: -52px;
@@ -257,7 +245,6 @@
     border-top: 10px solid white;
   }
 
-  /* Zzz */
   .zzz {
     position: absolute;
     top: -18px; left: 120px;
@@ -273,73 +260,50 @@
     50% { transform: translate(-6px, -8px); }
   }
 
-  /* Status bar */
   .status-bar {
     display: flex;
-    gap: 12px;
-    margin-top: 16px;
-    padding: 12px 18px;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 10px 14px;
     background: rgba(255,255,255,0.2);
     border-radius: 16px;
+    align-items: center;
   }
 
-  .stat {
-    text-align: center;
-    color: white;
-    flex: 1;
-    min-width: 0;
-  }
-  .stat-icon { font-size: 20px; }
-  .stat-bar {
-    width: 100%;
-    height: 5px;
-    background: rgba(255,255,255,0.3);
-    border-radius: 3px;
-    margin: 3px auto;
-    overflow: hidden;
-    max-width: 65px;
-  }
-  .stat-fill {
-    height: 100%;
-    border-radius: 3px;
-    transition: width 0.5s ease;
-  }
-  .stat-label { font-size: 10px; opacity: 0.8; }
+  .stat { text-align: center; color: white; flex: 1; min-width: 0; }
+  .stat-icon { font-size: 18px; }
+  .stat-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; margin: 2px auto; overflow: hidden; max-width: 50px; }
+  .stat-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+  .stat-label { font-size: 9px; opacity: 0.8; }
 
-  .btn-group {
+  .xp-bar-container {
+    margin-top: 8px;
     display: flex;
-    gap: 6px;
-    margin-top: 12px;
-    flex-wrap: wrap;
-    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 0 4px;
   }
+  .xp-bar-bg { flex: 1; height: 6px; background: rgba(0,0,0,0.2); border-radius: 3px; overflow: hidden; }
+  .xp-bar-fill { height: 100%; background: linear-gradient(90deg, #FFD700, #FF6B6B); border-radius: 3px; transition: width 0.6s ease; }
+  .xp-label { color: rgba(255,255,255,0.7); font-size: 11px; white-space: nowrap; }
 
+  .btn-group { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
   .btn {
-    padding: 7px 14px;
+    padding: 6px 12px;
     border: none;
     border-radius: 12px;
-    font-size: 13px;
+    font-size: 12px;
     cursor: pointer;
     background: rgba(255,255,255,0.25);
     color: white;
     transition: all 0.2s;
     border: 1px solid rgba(255,255,255,0.15);
   }
-  .btn:hover {
-    background: rgba(255,255,255,0.4);
-    transform: translateY(-1px);
-  }
+  .btn:hover { background: rgba(255,255,255,0.4); transform: translateY(-1px); }
   .btn:active { transform: scale(0.97); }
 
-  .mood {
-    text-align: center;
-    color: white;
-    font-size: 13px;
-    margin-top: 6px;
-    opacity: 0.9;
-  }
+  .mood { text-align: center; color: white; font-size: 12px; margin-top: 4px; opacity: 0.9; }
 
-  /* Particle */
   .particle {
     position: absolute;
     pointer-events: none;
@@ -352,7 +316,6 @@
     100% { opacity: 0; transform: translateY(-70px) scale(1.4); }
   }
 
-  /* Animations */
   @keyframes tailWag {
     0%, 100% { transform: rotate(0deg); }
     50% { transform: rotate(12deg); }
@@ -371,6 +334,23 @@
     100% { transform: rotate(360deg); }
   }
   .spinning .pet { animation: petSpin 0.6s ease; }
+
+  @keyframes levelUpFlash {
+    0% { filter: brightness(1); }
+    25% { filter: brightness(1.8) saturate(2); }
+    50% { filter: brightness(1); }
+    75% { filter: brightness(1.8) saturate(2); }
+    100% { filter: brightness(1); }
+  }
+  .level-up .pet-area { animation: levelUpFlash 0.6s ease 3; }
+
+  .day-counter {
+    position: absolute;
+    bottom: 6px; right: 10px;
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    z-index: 1;
+  }
 </style>
 </head>
 <body>
@@ -380,6 +360,13 @@
     <div class="sun"></div>
     <div class="cloud c1"></div>
     <div class="cloud c2"></div>
+
+    <div class="level-badge">
+      <span>⭐</span>
+      <span id="levelNum">Lv.1</span>
+      <span class="level-title" id="levelTitle">小奶猫</span>
+    </div>
+    <div class="day-counter" id="dayCounter">第 1 天</div>
 
     <div class="cat-wrapper" id="catWrapper">
       <div class="speech" id="speech">喵~ 你好呀！</div>
@@ -428,6 +415,13 @@
     </div>
   </div>
 
+  <div class="xp-bar-container">
+    <span class="xp-label" id="xpLabel">EXP 0/50</span>
+    <div class="xp-bar-bg">
+      <div class="xp-bar-fill" id="xpFill" style="width:0%"></div>
+    </div>
+  </div>
+
   <div class="mood" id="moodText">😊 心情不错~</div>
 
   <div class="btn-group">
@@ -445,16 +439,20 @@
 <script>
   const pet = document.getElementById('pet');
   const petArea = document.getElementById('petArea');
-  const catWrapper = document.getElementById('catWrapper');
   const speech = document.getElementById('speech');
   const zzz = document.getElementById('zzz');
-  const happinessFill = document.getElementById('happinessFill');
-  const hungerFill = document.getElementById('hungerFill');
-  const energyFill = document.getElementById('energyFill');
-  const loveFill = document.getElementById('loveFill');
+  const hs = document.getElementById('happinessFill');
+  const hg = document.getElementById('hungerFill');
+  const en = document.getElementById('energyFill');
+  const lv = document.getElementById('loveFill');
   const moodText = document.getElementById('moodText');
   const eyeL = document.getElementById('eyeL');
   const eyeR = document.getElementById('eyeR');
+  const levelNum = document.getElementById('levelNum');
+  const levelTitle = document.getElementById('levelTitle');
+  const xpFill = document.getElementById('xpFill');
+  const xpLabel = document.getElementById('xpLabel');
+  const dayCounter = document.getElementById('dayCounter');
 
   const msgs = {
     happy: ['喵喵~ 😊', '好开心！', '今天真棒~', '撸我吧！🐱', '最喜欢你啦❤️'],
@@ -467,178 +465,236 @@
     feed: ['好吃好吃！', '还要！还要！', '好满足~ 🥰'],
     dance: ['转圈圈~ 💫', '看我舞姿！', '再来一个！'],
     trick: ['锵锵！🎉', '我厉害吧！', '给点奖励呗~'],
-    love: ['最喜欢你啦！❤️', '你最好啦~', '蹭蹭~ 🥹']
+    levelUp: ['升级啦！🎉', '我好强！', '又变厉害了！', '继续加油！💪'],
+    offline: ['你回来啦！', '好久不见~', '想死你了！😭', '终于来看我了！'],
   };
+  function rnd(a) { return a[Math.floor(Math.random()*a.length)]; }
 
-  function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  // === Level formulas ===
+  const TITLES = [
+    { max: 1, t: '小奶猫', i: '🐣' }, { max: 5, t: '顽皮猫', i: '🐱' },
+    { max: 10, t: '机灵猫', i: '😸' }, { max: 20, t: '大佬猫', i: '😼' },
+    { max: 50, t: '传说之猫', i: '🐱‍👤' }, { max: 100, t: '星辰之猫', i: '🌟' },
+    { max: Infinity, t: '宇宙猫皇', i: '👑' }
+  ];
 
-  let S = {
-    happiness: 80, hunger: 50, energy: 70, love: 0,
-    sleeping: false, msgTimer: null
-  };
-
-  function say(msg, dur = 2500) {
-    clearTimeout(S.msgTimer);
-    speech.textContent = msg;
-    speech.classList.add('show');
-    speech.style.whiteSpace = msg.length > 14 ? 'normal' : 'nowrap';
-    S.msgTimer = setTimeout(() => speech.classList.remove('show'), dur);
+  function getLevel(xp) {
+    // XP needed for L levels: 25 * L * (L-1) / 2
+    const n = Math.floor((1 + Math.sqrt(1 + 8*xp/25)) / 2);
+    const total = n > 0 ? 25 * n * (n-1) / 2 : 0;
+    const next = 25 * Math.max(1, n);
+    return { level: Math.max(1, n), progress: xp - total, xpForNext: next };
   }
 
-  function particles(x, y, emoji = '❤️', n = 6) {
-    for (let i = 0; i < n; i++) {
-      const el = document.createElement('div');
-      el.className = 'particle';
-      el.textContent = emoji;
-      el.style.left = (x + (Math.random() - 0.5) * 40) + 'px';
-      el.style.top = (y + (Math.random() - 0.5) * 20) + 'px';
-      el.style.animationDuration = (0.7 + Math.random() * 0.5) + 's';
-      petArea.appendChild(el);
-      setTimeout(() => el.remove(), 1200);
+  function getTitle(lv) {
+    for (const t of TITLES) { if (lv <= t.max) return t; }
+    return TITLES[TITLES.length-1];
+  }
+
+  function save() {
+    const info = getLevel(S.xp);
+    const d = {
+      xp: S.xp, happiness: S.happiness, hunger: S.hunger, love: S.love,
+      createdAt: S.createdAt, totalInteractions: S.totalInteractions,
+      petCount: S.petCount, feedCount: S.feedCount, playCount: S.playCount,
+      highestLevel: Math.max(S.highestLevel||1, info.level),
+      lastSave: Date.now()
+    };
+    try { localStorage.setItem('catData', JSON.stringify(d)); } catch(e) {}
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem('catData');
+      if (!raw) return false;
+      const d = JSON.parse(raw);
+      S.xp = d.xp || 0;
+      S.happiness = d.happiness ?? 80;
+      S.hunger = d.hunger ?? 50;
+      S.love = d.love ?? 0;
+      S.createdAt = d.createdAt || Date.now();
+      S.totalInteractions = d.totalInteractions || 0;
+      S.petCount = d.petCount || 0;
+      S.feedCount = d.feedCount || 0;
+      S.playCount = d.playCount || 0;
+      S.highestLevel = d.highestLevel || 1;
+
+      const lastSave = d.lastSave || Date.now();
+      const offMs = Date.now() - lastSave;
+      if (offMs > 60000) {
+        const offMin = Math.min(offMs / 60000, 480);
+        const bonus = Math.floor(offMin * 2);
+        if (bonus > 0) {
+          const oldLv = getLevel(S.xp).level;
+          S.xp += bonus;
+          const newLv = getLevel(S.xp).level;
+          if (newLv > oldLv)
+            setTimeout(() => say('🎉 离线获得 '+bonus+' XP！升到 Lv.'+newLv, 3500), 1500);
+          else if (bonus >= 10)
+            setTimeout(() => say(rnd(msgs.offline)+' (+'+bonus+' XP)', 3000), 1500);
+        }
+      }
+      return true;
+    } catch(e) { return false; }
+  }
+
+  let S = {
+    xp: 0, happiness: 80, hunger: 50, energy: 70, love: 0,
+    sleeping: false, msgTimer: null,
+    totalInteractions: 0, petCount: 0, feedCount: 0, playCount: 0,
+    createdAt: Date.now(), highestLevel: 1
+  };
+
+  if (!load()) { S.createdAt = Date.now(); say('🐱 新伙伴来啦！', 3000); }
+
+  function updLevel() {
+    const info = getLevel(S.xp);
+    const t = getTitle(info.level);
+    levelNum.textContent = 'Lv.'+info.level;
+    levelTitle.textContent = t.i+' '+t.t;
+    const pct = info.xpForNext > 0 ? Math.min(100, info.progress/info.xpForNext*100) : 100;
+    xpFill.style.width = pct+'%';
+    xpLabel.textContent = 'EXP '+Math.floor(info.progress)+'/'+info.xpForNext;
+    dayCounter.textContent = '第 '+(Math.floor((Date.now()-S.createdAt)/86400000)+1)+' 天';
+  }
+
+  function upd() {
+    hs.style.width = S.happiness+'%';
+    hg.style.width = S.hunger+'%';
+    en.style.width = S.energy+'%';
+    lv.style.width = Math.min(100,S.love)+'%';
+    const mood = S.happiness<15?'😿':S.happiness>70?'😊':'😐';
+    const t = S.sleeping?'zzz... 💤':
+      (S.happiness<15?rnd(msgs.sick):S.hunger<15?rnd(msgs.hungry):
+       S.energy<10?rnd(msgs.sleepy):S.happiness>70?rnd(msgs.happy):rnd(msgs.normal));
+    moodText.textContent = mood+' '+t;
+    updLevel(); save();
+  }
+
+  function addXp(amt) {
+    const oldLv = getLevel(S.xp).level;
+    S.xp += amt;
+    S.totalInteractions++;
+    const newLv = getLevel(S.xp).level;
+    if (newLv > oldLv) {
+      S.highestLevel = Math.max(S.highestLevel||1, newLv);
+      petArea.classList.add('level-up');
+      setTimeout(()=>petArea.classList.remove('level-up'), 2000);
+      for(let i=0;i<3;i++) setTimeout(()=>particles(80+Math.random()*160,100,'🎉',8), i*200);
+      setTimeout(()=>say('🎉 升到 Lv.'+newLv+' 啦！'+rnd(msgs.levelUp), 3000), 600);
     }
+    upd();
   }
 
   function closeEyes() { eyeL.classList.add('eye-closed'); eyeR.classList.add('eye-closed'); }
-  function openEyes() { eyeL.classList.remove('eye-closed', 'eye-happy'); eyeR.classList.remove('eye-closed', 'eye-happy'); }
+  function openEyes() { eyeL.classList.remove('eye-closed','eye-happy'); eyeR.classList.remove('eye-closed','eye-happy'); }
   function happyEyes() { openEyes(); eyeL.classList.add('eye-happy'); eyeR.classList.add('eye-happy'); }
-  function blink() { if (S.sleeping) return; closeEyes(); setTimeout(openEyes, 250); }
+  function blink() { if(S.sleeping) return; closeEyes(); setTimeout(openEyes, 250); }
+  function wag(d){ petArea.classList.add('wagging'); setTimeout(()=>petArea.classList.remove('wagging'), d||700); }
 
-  function wag(dur = 700) { petArea.classList.add('wagging'); setTimeout(() => petArea.classList.remove('wagging'), dur); }
+  function say(msg, dur) {
+    clearTimeout(S.msgTimer);
+    speech.textContent = msg;
+    speech.classList.add('show');
+    speech.style.whiteSpace = msg.length>14?'normal':'nowrap';
+    S.msgTimer = setTimeout(()=>speech.classList.remove('show'), dur||2500);
+  }
 
-  function upd() {
-    happinessFill.style.width = S.happiness + '%';
-    hungerFill.style.width = S.hunger + '%';
-    energyFill.style.width = S.energy + '%';
-    loveFill.style.width = Math.min(100, S.love) + '%';
-    const mood = S.happiness < 15 ? '😿' : S.happiness > 70 ? '😊' : '😐';
-    const text = S.sleeping ? 'zzz... 💤' :
-      (S.happiness < 15 ? rnd(msgs.sick) : S.hunger < 15 ? rnd(msgs.hungry) :
-       S.energy < 10 ? rnd(msgs.sleepy) : S.happiness > 70 ? rnd(msgs.happy) : rnd(msgs.normal));
-    moodText.textContent = mood + ' ' + text;
+  function particles(x,y,emoji,n) {
+    n=n||6;
+    for(let i=0;i<n;i++){
+      const el=document.createElement('div');
+      el.className='particle';
+      el.textContent=emoji||'❤️';
+      el.style.left=(x+(Math.random()-0.5)*40)+'px';
+      el.style.top=(y+(Math.random()-0.5)*20)+'px';
+      el.style.animationDuration=(0.7+Math.random()*0.5)+'s';
+      petArea.appendChild(el);
+      setTimeout(()=>el.remove(),1200);
+    }
   }
 
   function feed() {
-    if (S.sleeping) { say('呼噜... 别打扰我睡觉... 💤', 2000); return; }
-    S.hunger = Math.min(100, S.hunger + 20);
-    S.happiness = Math.min(100, S.happiness + 5);
-    say(rnd(msgs.feed), 2000); wag(600); blink();
-    upd();
+    if(S.sleeping){say('呼噜... 别打扰我睡觉... 💤',2000);return;}
+    S.hunger=Math.min(100,S.hunger+20);S.happiness=Math.min(100,S.happiness+5);
+    S.feedCount++;addXp(5);say(rnd(msgs.feed),2000);wag(600);blink();
   }
 
-  function feedTreat(treat) {
-    if (S.sleeping) { say('呼噜... 别打扰我睡觉... 💤', 2000); return; }
-    S.hunger = Math.min(100, S.hunger + 12);
-    S.happiness = Math.min(100, S.happiness + 8);
-    S.love = Math.min(100, S.love + 2);
-    say(rnd(['哇！'+treat+'！', treat+'好好吃~', '最爱吃这个了！🥰']), 2000);
-    wag(500); happyEyes();
-    setTimeout(blink, 500);
-    upd();
+  function feedTreat(t) {
+    if(S.sleeping){say('呼噜... 别打扰我睡觉... 💤',2000);return;}
+    S.hunger=Math.min(100,S.hunger+12);S.happiness=Math.min(100,S.happiness+8);S.love=Math.min(100,S.love+2);
+    addXp(8);say(rnd(['哇！'+t+'！',t+'好好吃~','最爱吃这个了！🥰']),2000);
+    wag(500);happyEyes();setTimeout(blink,500);
   }
 
   function petPet() {
-    if (S.sleeping) { say('Zzz... 别吵... 💤', 2000); return; }
-    S.happiness = Math.min(100, S.happiness + 8);
-    S.love = Math.min(100, S.love + 3);
-    say(rnd(msgs.pet), 2000);
-    wag(700); happyEyes();
-    setTimeout(blink, 400);
-    upd();
+    if(S.sleeping){say('Zzz... 别吵... 💤',2000);return;}
+    S.happiness=Math.min(100,S.happiness+8);S.love=Math.min(100,S.love+3);
+    S.petCount++;addXp(10);say(rnd(msgs.pet),2000);wag(700);happyEyes();setTimeout(blink,400);
   }
 
   function play() {
-    if (S.sleeping) { say('Zzz... 不想动... 💤', 2000); return; }
-    if (S.energy < 8) { say('好累... 玩不动了... 😩', 2000); return; }
-    S.happiness = Math.min(100, S.happiness + 12);
-    S.energy = Math.max(0, S.energy - 15);
-    S.hunger = Math.max(0, S.hunger - 5);
-    S.love = Math.min(100, S.love + 1);
-    say(rnd(msgs.play), 2000);
-    blink();
-    petArea.classList.add('bouncing');
-    setTimeout(() => petArea.classList.remove('bouncing'), 600);
-    wag(500);
-    upd();
+    if(S.sleeping){say('Zzz... 不想动... 💤',2000);return;}
+    if(S.energy<8){say('好累... 玩不动了... 😩',2000);return;}
+    S.happiness=Math.min(100,S.happiness+12);S.energy=Math.max(0,S.energy-15);S.hunger=Math.max(0,S.hunger-5);
+    S.love=Math.min(100,S.love+1);S.playCount++;addXp(15);
+    say(rnd(msgs.play),2000);blink();
+    petArea.classList.add('bouncing');setTimeout(()=>petArea.classList.remove('bouncing'),600);wag(500);
   }
 
   function toggleSleep() {
-    if (S.sleeping) {
-      S.sleeping = false;
-      S.energy = Math.min(100, S.energy + 40);
-      say('睡醒啦！精神满满~ ☀️', 2500);
-      zzz.classList.remove('show');
-      openEyes();
-    } else {
-      S.sleeping = true;
-      S.energy = Math.min(100, S.energy + 30);
-      say('呼噜呼噜... 晚安~ 💤', 2500);
-      closeEyes();
-      zzz.classList.add('show');
+    if(S.sleeping){
+      S.sleeping=false;S.energy=Math.min(100,S.energy+40);addXp(5);
+      say('睡醒啦！精神满满~ ☀️',2500);zzz.classList.remove('show');openEyes();
+    }else{
+      S.sleeping=true;S.energy=Math.min(100,S.energy+30);
+      say('呼噜呼噜... 晚安~ 💤',2500);closeEyes();zzz.classList.add('show');
     }
     upd();
   }
 
   function dance() {
-    if (S.sleeping) { say('Zzz... 跳不动... 💤', 2000); return; }
-    if (S.energy < 15) { say('太累了，跳不动 💫', 2000); return; }
-    S.energy = Math.max(0, S.energy - 10);
-    S.happiness = Math.min(100, S.happiness + 8);
-    say(rnd(msgs.dance), 2500);
-    petArea.classList.add('spinning');
-    particles(140, 70, '⭐', 8);
-    setTimeout(() => petArea.classList.remove('spinning'), 600);
-    setTimeout(blink, 300);
-    upd();
+    if(S.sleeping){say('Zzz... 跳不动... 💤',2000);return;}
+    if(S.energy<15){say('太累了，跳不动 💫',2000);return;}
+    S.energy=Math.max(0,S.energy-10);S.happiness=Math.min(100,S.happiness+8);
+    addXp(12);say(rnd(msgs.dance),2500);
+    petArea.classList.add('spinning');particles(140,70,'⭐',8);
+    setTimeout(()=>petArea.classList.remove('spinning'),600);setTimeout(blink,300);
   }
 
   function trick() {
-    if (S.sleeping) { say('Zzz... 明天再表演... 💤', 2000); return; }
-    if (S.energy < 12) { say('好累，表演不动了 🥱', 2000); return; }
-    S.energy = Math.max(0, S.energy - 12);
-    S.happiness = Math.min(100, S.happiness + 10);
-    S.love = Math.min(100, S.love + 2);
-    say(rnd(msgs.trick), 2000);
-    particles(140, 70, '🎉', 10);
-    petArea.classList.add('bouncing');
-    setTimeout(() => petArea.classList.remove('bouncing'), 450);
-    upd();
+    if(S.sleeping){say('Zzz... 明天再表演... 💤',2000);return;}
+    if(S.energy<12){say('好累，表演不动了 🥱',2000);return;}
+    S.energy=Math.max(0,S.energy-12);S.happiness=Math.min(100,S.happiness+10);S.love=Math.min(100,S.love+2);
+    addXp(12);say(rnd(msgs.trick),2000);particles(140,70,'🎉',10);
+    petArea.classList.add('bouncing');setTimeout(()=>petArea.classList.remove('bouncing'),450);
   }
 
-  // Click pet
-  pet.addEventListener('click', (e) => {
-    if (S.sleeping) { say('嗯... 我在睡觉呢 💤', 1800); return; }
-    const rect = petArea.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    if (Math.random() > 0.5) { petPet(); particles(x, y, '❤️', 4); }
-    else { say(rnd(msgs.normal), 2000); wag(); }
+  pet.addEventListener('click',(e)=>{
+    if(S.sleeping){say('嗯... 我在睡觉呢 💤',1800);return;}
+    const r=petArea.getBoundingClientRect();
+    const x=e.clientX-r.left,y=e.clientY-r.top;
+    if(Math.random()>0.5){petPet();particles(x,y,'❤️',4);}else{say(rnd(msgs.normal),2000);wag();}
     upd();
   });
 
-  // Auto-decay
-  setInterval(() => {
-    if (S.sleeping) { S.energy = Math.min(100, S.energy + 2); }
-    else {
-      S.happiness = Math.max(0, S.happiness - 0.3);
-      S.hunger = Math.max(0, S.hunger - 0.4);
-      S.energy = Math.max(0, S.energy - 0.3);
-    }
+  setInterval(()=>{
+    if(S.sleeping){S.energy=Math.min(100,S.energy+2);}
+    else{S.happiness=Math.max(0,S.happiness-0.3);S.hunger=Math.max(0,S.hunger-0.4);S.energy=Math.max(0,S.energy-0.3);}
     upd();
-  }, 3000);
+  },3000);
 
-  // Random blink
-  setInterval(() => { if (!S.sleeping) blink(); }, 3500);
+  setInterval(()=>{if(!S.sleeping)blink();},3500);
 
-  // Random speech
-  setInterval(() => {
-    if (S.sleeping) { if (Math.random() < 0.3) say('呼噜... 💤', 1800); return; }
-    if (Math.random() < 0.2 && !speech.classList.contains('show')) {
-      const pool = S.hunger < 25 ? msgs.hungry : S.energy < 20 ? msgs.sleepy : S.happiness > 70 ? msgs.happy : msgs.normal;
-      say(rnd(pool), 2500);
+  setInterval(()=>{
+    if(S.sleeping){if(Math.random()<0.3)say('呼噜... 💤',1800);return;}
+    if(Math.random()<0.2&&!speech.classList.contains('show')){
+      const p=S.hunger<25?msgs.hungry:S.energy<20?msgs.sleepy:S.happiness>70?msgs.happy:msgs.normal;
+      say(rnd(p),2500);
     }
-  }, 8000);
+  },8000);
 
-  say('喵~ 戳戳看我！🐱', 3000);
+  say('喵~ 戳戳看我！🐱',3000);
   upd();
 </script>
 </body>
