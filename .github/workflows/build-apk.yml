@@ -32,7 +32,10 @@ jobs:
         run: |
           mkdir -p app-output
           cd app-output
-          bubblewrap init --manifest https://xiaoyang0609.github.io/desktop-pet/manifest.json --signing-key-path ""
+          # non-interactive: answer "n" (use existing JDK) then provide JAVA_HOME path
+          printf 'n\n%s\n' "$JAVA_HOME" | bubblewrap init \
+            --manifest https://xiaoyang0609.github.io/desktop-pet/manifest.json \
+            --signing-key-path ""
 
       - name: Build APK
         run: |
