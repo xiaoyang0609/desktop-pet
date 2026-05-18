@@ -227,17 +227,18 @@
   .paw.left { left: 42px; }
   .paw.right { left: 100px; }
 
-  /* Speech */
+  /* Speech - positioned relative to cat-wrapper, centered */
   .speech {
     position: absolute;
-    top: -15px;
-    left: 140px;
+    top: -52px;
+    left: 50%;
+    transform: translateX(-50%);
     background: white;
     border-radius: 18px;
-    padding: 9px 15px;
+    padding: 8px 14px;
     font-size: 14px;
     color: #333;
-    max-width: 210px;
+    max-width: 220px;
     opacity: 0;
     transition: opacity 0.3s;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -248,7 +249,8 @@
   .speech::after {
     content: '';
     position: absolute;
-    bottom: -8px; left: 24px;
+    bottom: -8px; left: 50%;
+    margin-left: -10px;
     width: 0; height: 0;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
@@ -258,17 +260,17 @@
   /* Zzz */
   .zzz {
     position: absolute;
-    top: -5px; left: 80px;
-    font-size: 15px;
+    top: -18px; left: 120px;
+    font-size: 18px;
     opacity: 0;
     transition: opacity 0.4s;
     z-index: 5;
+    pointer-events: none;
   }
-  .zzz.show { opacity: 1; }
-  .zzz-float { animation: zzzAnim 2s ease-in-out infinite; }
+  .zzz.show { opacity: 1; animation: zzzAnim 2s ease-in-out infinite; }
   @keyframes zzzAnim {
     0%, 100% { transform: translate(0, 0); }
-    50% { transform: translate(-5px, -8px); }
+    50% { transform: translate(-6px, -8px); }
   }
 
   /* Status bar */
@@ -379,10 +381,9 @@
     <div class="cloud c1"></div>
     <div class="cloud c2"></div>
 
-    <div class="speech" id="speech">喵~ 你好呀！</div>
-    <div class="zzz" id="zzz">💤 Zzz...</div>
-
     <div class="cat-wrapper" id="catWrapper">
+      <div class="speech" id="speech">喵~ 你好呀！</div>
+      <div class="zzz" id="zzz">💤 Zzz...</div>
       <div class="pet" id="pet">
         <div class="cat-head">
           <div class="ear left"><div class="ear-inner"></div></div>
