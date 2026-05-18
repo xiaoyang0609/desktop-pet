@@ -2,7 +2,13 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#667eea">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="桌面宠物">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
 <title>🐱 小洋的桌面宠物</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -351,6 +357,50 @@
     font-size: 11px;
     z-index: 1;
   }
+
+  /* Mobile responsive */
+  @media (max-width: 480px) {
+    body { align-items: flex-start; padding-top: 10px; }
+    .container { padding: 16px; border-radius: 20px; }
+    .pet-area { width: 280px; height: 280px; border-radius: 18px; }
+    .cat-wrapper { bottom: 56px; }
+    .pet { width: 130px; height: 140px; }
+    .cat-head { width: 75px; height: 62px; top: 4px; left: 28px; }
+    .cat-body { width: 90px; height: 84px; bottom: 16px; left: 20px; }
+    .ear { border-left-width: 12px; border-right-width: 12px; border-bottom-width: 20px; }
+    .ear.left { left: 6px; }
+    .ear.right { left: 48px; }
+    .ear-inner { border-left-width: 7px; border-right-width: 7px; border-bottom-width: 12px; top: 5px; left: 5px; }
+    .eye { width: 11px; height: 15px; top: 22px; }
+    .eye.left { left: 16px; }
+    .eye.right { left: 46px; }
+    .eye-closed { height: 2px !important; top: 30px !important; width: 10px !important; }
+    .eye-happy { height: 3px !important; top: 29px !important; width: 12px !important; }
+    .nose { top: 34px; left: 31px; border-left-width: 5px; border-right-width: 5px; border-top-width: 5px; }
+    .mouth { top: 38px; left: 26px; width: 20px; height: 13px; }
+    .mouth::before, .mouth::after { width: 9px; height: 9px; }
+    .whisker:nth-child(1) { width: 22px; left: -12px; }
+    .whisker:nth-child(2) { width: 24px; left: -14px; }
+    .whisker:nth-child(3) { width: 22px; left: 64px; }
+    .whisker:nth-child(4) { width: 24px; left: 62px; }
+    .tail { width: 9px; height: 42px; bottom: 44px; right: 8px; }
+    .paw { width: 14px; height: 9px; bottom: 12px; }
+    .paw.left { left: 32px; }
+    .paw.right { left: 82px; }
+    .cat-belly { width: 52px; height: 44px; bottom: 34px; left: 39px; }
+    .speech { top: -44px; font-size: 12px; padding: 6px 12px; max-width: 180px; }
+    .sun { width: 34px; height: 34px; top: 14px; right: 28px; }
+    .cloud.c1 { width: 44px; height: 14px; top: 22px; left: 20px; }
+    .cloud.c2 { width: 56px; height: 16px; top: 46px; left: 140px; }
+    .level-badge { font-size: 11px; padding: 3px 8px; top: 8px; left: 8px; }
+    .status-bar { padding: 8px 10px; gap: 4px; margin-top: 10px; }
+    .stat-icon { font-size: 15px; }
+    .stat-bar { max-width: 40px; }
+    .stat-label { font-size: 8px; }
+    .xp-bar-container { margin-top: 6px; }
+    .btn { padding: 5px 10px; font-size: 11px; }
+    .day-counter { font-size: 10px; }
+  }
 </style>
 </head>
 <body>
@@ -696,6 +746,11 @@
 
   say('喵~ 戳戳看我！🐱',3000);
   upd();
+
+  // PWA: register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
 </script>
 </body>
 </html>
