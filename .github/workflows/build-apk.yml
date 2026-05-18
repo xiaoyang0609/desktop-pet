@@ -1,9 +1,7 @@
 name: Build Android APK
 
 on:
-  workflow_dispatch:   # 手动触发
-  push:
-    branches: [master]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -28,22 +26,24 @@ jobs:
       - name: Install bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Create Android app from PWA
+      - name: Create Android app (non-interactive)
         run: |
           mkdir -p app-output
           cd app-output
-          # non-interactive: answer "n" (use existing JDK) then provide JAVA_HOME path
-          printf 'n\n%s\n' "$JAVA_HOME" | bubblewrap init \
+          # script command creates a pseudo-TTY to handle inquirer prompts
+          # script creates a pseudo-TTY for inquirer
+          echo n | script -q -fc "bubblewrap init \
             --manifest https://xiaoyang0609.github.io/desktop-pet/manifest.json \
-            --signing-key-path ""
+            --signing-key-path ''" /dev/null
 
       - name: Build APK
         run: |
           cd app-output
-          bubblewrap build
+          script -q -fc "bubblewrap build" /dev/null
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: desktop-pet-apk
           path: app-output/app/build/outputs/apk/*.apk
+          if-no-files-found: error
