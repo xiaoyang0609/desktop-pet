@@ -23,25 +23,29 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          accept-android-sdk-licenses: true
 
       - name: Install bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Create Android app
+      - name: Initialize Android app
         run: |
           mkdir -p app-output
           cd app-output
-          echo n | bubblewrap init --manifest https://xiaoyang0609.github.io/desktop-pet/manifest.json --jks-path '' --jks-key-alias '' --web-manifest-url '' || true
+          printf 'n\n%s\n' "$JAVA_HOME" | bubblewrap init --manifest https://xiaoyang0609.github.io/desktop-pet/manifest.json --jks-path '' --jks-key-alias '' --web-manifest-url ''
 
       - name: Build APK
         run: |
           cd app-output
-          timeout 600 bubblewrap build 2>&1 || echo "Build done"
+          bubblewrap build 2>&1
 
-      - name: Find and upload APK
+      - name: Show output
         run: |
-          find . -name "*.apk" -exec echo "Found: {}" \;
-          find . -name "*.apk" -exec cp {} /tmp/apk-to-upload.apk \; || true
+          echo "=== Find APK ==="
+          find . -name "*.apk" 2>/dev/null
+          echo "=== app-output ==="
+          ls -la app-output/ 2>/dev/null || true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
