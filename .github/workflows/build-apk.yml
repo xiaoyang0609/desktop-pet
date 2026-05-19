@@ -19,103 +19,94 @@ jobs:
         with:
           accept-android-sdk-licenses: true
 
-      - name: Generate icons
-        run: |
-          pip3 install Pillow -q 2>/dev/null || true
-          python3 -c "
-import os, struct, zlib
-def make_png(w,h,pixels):
-    def chunk(typ,data):
-        c=typ+data
-        return struct.pack('>I',len(data))+c+struct.pack('>I',zlib.crc32(c)&0xffffffff)
-    raw=b''
-    for y in range(h):
-        raw+=b'\x00'
-        for x in range(w):
-            raw+=bytes(pixels[y][x])
-    ihdr=struct.pack('>IIBBBBB',w,h,8,6,0,0,0)
-    return b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',ihdr)+chunk(b'IDAT',zlib.compress(raw))+chunk(b'IEND',b'')
-import math
-sizes={'mdpi':48,'hdpi':72,'xhdpi':96,'xxhdpi':144,'xxxhdpi':192}
-for den,px in sizes.items():
-    img=[]
-    for y in range(px):
-        row=[]
-        for x in range(px):
-            cx,cy=px//2,px//2-px//8
-            r=px//3-1
-            dx,dy=x-cx,y-cy
-            if dx*dx+dy*dy<=r*r:
-                row.append((74,144,217,255))
-            else:
-                row.append((26,26,46,0))
-        img.append(row)
-    er=px//12
-    for x in range(px):
-        for y in range(px):
-            cx,cy=px//2,px//2-px//8
-            r=px//3-1
-            dx,dy=x-cx,y-cy
-            if dx*dx+dy*dy>r*r: continue
-            # eye left
-            elx,ely=cx-r//2,cy-er*2
-            edx,edy=x-elx,y-ely
-            if edx*edx+edy*edy<=er*er: img[y][x]=(255,255,255,255)
-            # eye right
-            erx,ery=cx+r//2,cy-er*2
-            edx2,edy2=x-erx,y-ery
-            if edx2*edx2+edy2*edy2<=er*er: img[y][x]=(255,255,255,255)
-    # mouth
-    nr=px//20
-    mx,my=cx,cy+er
-    if my+2*nr>=0 and my<px and mx-nr>=0 and mx+nr<px:
-        for yy in range(my,min(my+nr*2,px-1)):
-            for xx in range(mx-nr,min(mx+nr,px-1)):
-                dy=yy-my
-                halfw=int(math.sqrt(max(0,nr*nr-(dy-nr)*(dy-nr))))
-                if xx>=mx-halfw and xx<=mx+halfw:
-                    img[yy][xx]=(255,182,193,255)
-    png=make_png(px,px,img)
-    d='android-project/app/src/main/res/mipmap-'+den
-    os.makedirs(d,exist_ok=True)
-    with open(d+'/ic_launcher.png','wb') as f: f.write(png)
-    print(den,px,'OK')
-print('Icons done')
-"
-
-      - name: Create Android project
+      - name: Build
         run: |
           set -e
-          cd android-project || mkdir android-project && cd android-project
 
-          mkdir -p app/src/main/java/com/desktop/pet
-          mkdir -p app/src/main/res/values
-          mkdir -p app/src/main/res/drawable
-          mkdir -p gradle/wrapper
-          mkdir -p app/src/main/res/mipmap-anydpi-v26
+          # --- ICONS ---
+          pip3 install Pillow -q 2>/dev/null || true
+          python3 << 'PYEOF'
+import os, struct, zlib, math
+def png(w,h,p):
+    def c(t,d):
+        return struct.pack('>I',len(d))+t+d+struct.pack('>I',zlib.crc32(t+d)&0xffffffff)
+    r=bytearray()
+    for y in range(h):
+        r.append(0)
+        for x in range(w): r.extend(p[y][x])
+    ihdr=struct.pack('>IIBBBBB',w,h,8,6,0,0,0)
+    return b'\x89PNG\r\n\x1a\n'+c(b'IHDR',ihdr)+c(b'IDAT',zlib.compress(bytes(r)))+c(b'IEND',b'')
+S={'mdpi':48,'hdpi':72,'xhdpi':96,'xxhdpi':144,'xxxhdpi':192}
+for d,px in S.items():
+    cx,cy,r=px//2,px//2-px//8,px//3-1
+    img=[[(26,26,46,0) for _ in range(px)] for _ in range(px)]
+    for x in range(px):
+        for y in range(px):
+            if (x-cx)*(x-cx)+(y-cy)*(y-cy)<=r*r:
+                img[y][x]=(74,144,217,255)
+    er=px//12
+    for x,y in [(cx-r//2,cy-er*2),(cx+r//2,cy-er*2)]:
+        for dx in range(-er,er+1):
+            for dy in range(-er,er+1):
+                if dx*dx+dy*dy<=er*er and 0<=x+dx<px and 0<=y+dy<px:
+                    img[y+dy][x+dx]=(255,255,255,255)
+    mx,my,sz=cx,cy+er,px//20
+    for dy in range(0,sz*2):
+        for dx in range(-sz+1,sz):
+            if dx*dx+(dy-sz)*(dy-sz)<=sz*sz and 0<=mx+dx<px and 0<=my+dy<px:
+                img[my+dy][mx+dx]=(255,182,193,255)
+    p=png(px,px,img)
+    pth='android-project/app/src/main/res/mipmap-'+d
+    os.makedirs(pth,exist_ok=True)
+    open(pth+'/ic_launcher.png','wb').write(p)
+PYEOF
 
-          # build.gradle (top-level)
-          printf '%s\n' 'plugins {' '    id "com.android.application" version "8.2.0" apply false' '}' > build.gradle
+          # --- PROJECT FILES ---
+          mkdir -p android-project/app/src/main/java/com/desktop/pet
+          mkdir -p android-project/app/src/main/res/values
+          mkdir -p android-project/gradle/wrapper
+          mkdir -p android-project/app/src/main/res/mipmap-anydpi-v26
+
+          cd android-project
+
+          # build.gradle
+          cat > build.gradle << 'EOF'
+          plugins {
+              id "com.android.application" version "8.2.0" apply false
+          }
+          EOF
 
           # settings.gradle
-          printf '%s\n' 'pluginManagement {' '    repositories { google(); mavenCentral(); gradlePluginPortal() }' '}' > settings.gradle
-          printf '%s\n' 'dependencyResolutionManagement {' '    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)' '    repositories { google(); mavenCentral() }' '}' >> settings.gradle
-          printf '%s\n' "rootProject.name = \"DesktopPet\"" 'include ":app"' >> settings.gradle
+          cat > settings.gradle << 'EOF'
+          pluginManagement {
+              repositories { google(); mavenCentral(); gradlePluginPortal() }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories { google(); mavenCentral() }
+          }
+          rootProject.name = "DesktopPet"
+          include ":app"
+          EOF
 
           # gradle.properties
-          printf '%s\n' 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8' 'android.useAndroidX=true' 'android.enableJetifier=true' > gradle.properties
+          cat > gradle.properties << 'EOF'
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          android.enableJetifier=true
+          EOF
 
-          # gradle wrapper properties
-          cat > gradle/wrapper/gradle-wrapper.properties << 'ENDGRADLE'
+          # gradle wrapper
+          cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
           distributionBase=GRADLE_USER_HOME
           distributionPath=wrapper/dists
           distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-bin.zip
           zipStoreBase=GRADLE_USER_HOME
           zipStorePath=wrapper/dists
-          ENDGRADLE
+          EOF
 
           # app/build.gradle
-          cat > app/build.gradle << 'ENDGRADLE'
+          cat > app/build.gradle << 'EOF'
           plugins {
               id "com.android.application"
           }
@@ -143,21 +134,21 @@ print('Icons done')
           dependencies {
               implementation "androidx.appcompat:appcompat:1.6.1"
           }
-          ENDGRADLE
+          EOF
 
           touch app/proguard-rules.pro
 
-          # adaptive icon XML
-          cat > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml << 'ENDXML'
+          # adaptive icon
+          cat > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
               <background android:drawable="@mipmap/ic_launcher"/>
               <foreground android:drawable="@mipmap/ic_launcher"/>
           </adaptive-icon>
-          ENDXML
+          EOF
 
           # AndroidManifest.xml
-          cat > app/src/main/AndroidManifest.xml << 'ENDXML'
+          cat > app/src/main/AndroidManifest.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET" />
@@ -177,10 +168,10 @@ print('Icons done')
                   </activity>
               </application>
           </manifest>
-          ENDXML
+          EOF
 
-          # styles.xml - FIX: use AppCompat theme, not android:Theme.Material!
-          cat > app/src/main/res/values/styles.xml << 'ENDXML2'
+          # styles
+          cat > app/src/main/res/values/styles.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
@@ -188,81 +179,38 @@ print('Icons done')
                   <item name="android:navigationBarColor">#1a1a2e</item>
               </style>
           </resources>
-          ENDXML2
+          EOF
 
-          # MainActivity.java - FIX: add error handling and logging
-          cat > app/src/main/java/com/desktop/pet/MainActivity.java << 'ENDJAVA'
+          # MainActivity
+          cat > app/src/main/java/com/desktop/pet/MainActivity.java << 'EOF'
           package com.desktop.pet;
-
           import android.os.Bundle;
-          import android.webkit.WebSettings;
-          import android.webkit.WebView;
-          import android.webkit.WebViewClient;
-          import android.webkit.WebResourceRequest;
-          import android.webkit.WebResourceError;
-          import android.graphics.Bitmap;
-          import android.util.Log;
-          import android.widget.Toast;
+          import android.webkit.*;
           import androidx.appcompat.app.AppCompatActivity;
-
           public class MainActivity extends AppCompatActivity {
-              private WebView webView;
-              private static final String TAG = "DesktopPet";
-              private static final String URL = "https://xiaoyang0609.github.io/desktop-pet/";
-
+              private WebView wv;
               @Override
-              protected void onCreate(Bundle savedInstanceState) {
-                  super.onCreate(savedInstanceState);
-
-                  webView = new WebView(this);
-                  WebSettings settings = webView.getSettings();
-                  settings.setJavaScriptEnabled(true);
-                  settings.setDomStorageEnabled(true);
-                  settings.setLoadWithOverviewMode(true);
-                  settings.setUseWideViewPort(true);
-                  settings.setAllowFileAccess(false);
-                  settings.setAllowContentAccess(false);
-                  settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-
-                  webView.setWebViewClient(new WebViewClient() {
-                      @Override
-                      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                          String url = request.getUrl().toString();
-                          if (url.startsWith(URL)) {
-                              return false;
-                          }
-                          return true;
-                      }
-
-                      @Override
-                      public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                          Log.d(TAG, "Loading: " + url);
-                      }
-
-                      @Override
-                      public void onPageFinished(WebView view, String url) {
-                          Log.d(TAG, "Loaded: " + url);
-                      }
-
-                      @Override
-                      public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                          Log.e(TAG, "Error loading " + request.getUrl() + ": " + error.getDescription());
-                      }
-                  });
-
-                  setContentView(webView);
-                  webView.loadUrl(URL);
+              protected void onCreate(Bundle b) {
+                  super.onCreate(b);
+                  wv = new WebView(this);
+                  WebSettings s = wv.getSettings();
+                  s.setJavaScriptEnabled(true);
+                  s.setDomStorageEnabled(true);
+                  s.setLoadWithOverviewMode(true);
+                  s.setUseWideViewPort(true);
+                  wv.setWebViewClient(new WebViewClient());
+                  setContentView(wv);
+                  wv.loadUrl("https://xiaoyang0609.github.io/desktop-pet/");
               }
-
               @Override
               public void onBackPressed() {
-                  if (webView.canGoBack()) webView.goBack();
+                  if (wv.canGoBack()) wv.goBack();
                   else super.onBackPressed();
               }
           }
-          ENDJAVA
+          EOF
 
-          echo "Project created"
+          echo "Project ready"
 
       - name: Build APK
         run: |
