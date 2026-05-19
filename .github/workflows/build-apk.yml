@@ -396,38 +396,17 @@ jobs:
         run: |
           cd android-project
           
-          # Download Gradle wrapper (need 8.5 for AGP 8.2.0)
-          mkdir -p gradle/wrapper
-          cat > gradle/wrapper/gradle-wrapper.properties << 'PROPS'
-          distributionBase=GRADLE_USER_HOME
-          distributionPath=wrapper/dists
-          distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-bin.zip
-          zipStoreBase=GRADLE_USER_HOME
-          zipStorePath=wrapper/dists
-          PROPS
+          # Generate wrapper using system gradle (targeting 8.5)
+          gradle wrapper --gradle-version=8.5 2>&1 || echo "Wrapper gen failed, trying manual..."
           
-          # Create minimal gradlew
-          cat > gradlew << 'GRADLEW'
-          #!/bin/sh
-          # Gradle wrapper that handles download
-          APP_HOME=$( cd "${0%[/\\]*}" > /dev/null && pwd )
-          GRADLE_VERSION=8.5
-          if [ ! -f "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" ]; then
-            echo "Downloading Gradle wrapper..."
-            # Download a known good wrapper jar via base64
-            curl -sL "https://raw.githubusercontent.com/bradymholt/gradle-wrapper-download/master/gradle/${GRADLE_VERSION}/wrapper/gradle-wrapper.jar" > "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" 2>/dev/null
+          if [ ! -f gradlew ]; then
+            # Manual download of gradle 8.5
+            curl -sLO "https://services.gradle.org/distributions/gradle-8.5-bin.zip"
+            unzip -q gradle-8.5-bin.zip -d /tmp/gradle
+            /tmp/gradle/gradle-8.5/bin/gradle wrapper --gradle-version=8.5 2>&1 || true
           fi
-          if [ ! -f "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" ]; then
-            # Use system gradle as fallback
-            exec gradle "$@"
-          fi
-          exec java -classpath "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" org.gradle.wrapper.GradleWrapperMain "$@"
-          GRADLEW
-          chmod +x gradlew
           
-          # Download the wrapper jar
-          curl -sL "https://raw.githubusercontent.com/bradymholt/gradle-wrapper-download/master/gradle/8.5/wrapper/gradle-wrapper.jar" -o gradle/wrapper/gradle-wrapper.jar 2>/dev/null || true
-          
+          chmod +x gradlew 2>/dev/null || true
           ./gradlew assembleRelease --no-daemon 2>&1
 
       - name: Sign APK
