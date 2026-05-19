@@ -26,22 +26,22 @@ jobs:
         with:
           accept-android-sdk-licenses: true
 
-      - name: Install @bubblewrap/cli
-        run: npm install -g @bubblewrap/cli
-
-      - name: Generate Android project via Node script
+      - name: Generate Android project
         run: |
           mkdir -p app-output
+          npm install @bubblewrap/core 2>&1 | tail -3
 
-          # Create a Node.js script that generates the project programmatically
-          cat > generate.mjs << 'SCRIPT'
-          import { TwaGenerator, TwaManifest, Log } from '@bubblewrap/core';
-          import * as path from 'path';
-          import * as fs from 'fs';
-          import { fileURLToPath } from 'url';
+          # Generate keystore
+          keytool -genkey -v -keystore release.keystore -alias desktop-pet -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Pet, OU=Dev, O=Pet, L=Unknown, ST=Unknown, C=CN"
 
-          const __dirname = path.dirname(fileURLToPath(import.meta.url));
-          const outputDir = path.join(__dirname, 'app-output');
+          # Run inline Node.js to generate the project
+          node -e "
+          const { TwaGenerator, TwaManifest } = require('@bubblewrap/core');
+          const path = require('path');
+          const fs = require('fs');
+
+          const outputDir = path.join(process.cwd(), 'app-output');
+          const keyPath = path.join(process.cwd(), 'release.keystore');
 
           const manifest = new TwaManifest({
             packageId: 'com.desktop.pet',
@@ -59,7 +59,7 @@ jobs:
             maskableIconUrl: 'https://xiaoyang0609.github.io/desktop-pet/pet_cat.png',
             monochromeIconUrl: 'https://xiaoyang0609.github.io/desktop-pet/pet_cat.png',
             signingKey: {
-              path: path.join(__dirname, 'release.keystore'),
+              path: keyPath,
               keyAlias: 'desktop-pet',
               keyPassword: 'android',
               storePassword: 'android',
@@ -76,18 +76,17 @@ jobs:
             appVersionIsAWebsite: false,
           });
 
+          const { Log } = require('@bubblewrap/core');
           const generator = new TwaGenerator();
-          const log = new Log('cli');
-          await generator.createTwaProject(outputDir, manifest, log);
-          console.log('✅ TWA project generated in', outputDir);
-          SCRIPT
-
-          # Generate keystore
-          keytool -genkey -v -keystore release.keystore -alias desktop-pet -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Pet, OU=Dev, O=Pet, L=Unknown, ST=Unknown, C=CN"
-
-          # Run the script
-          cd app-output
-          node ../generate.mjs 2>&1
+          const log = new Log('generate');
+          generator.createTwaProject(outputDir, manifest, log).then(() =>
+            console.log('✅ TWA project generated in', outputDir)
+          ).catch((e) => {
+            console.error('❌ Error:', e.message);
+            console.error(e.stack);
+            process.exit(1);
+          });
+          " 2>&1
 
       - name: Build APK
         run: |
