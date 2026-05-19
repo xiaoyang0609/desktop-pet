@@ -19,65 +19,25 @@ jobs:
         with:
           accept-android-sdk-licenses: true
 
-      - name: Build
+      - name: Create Android project
         run: |
           set -e
-
-          # --- ICONS ---
-          pip3 install Pillow -q 2>/dev/null || true
-          python3 << 'PYEOF'
-import os, struct, zlib, math
-def png(w,h,p):
-    def c(t,d):
-        return struct.pack('>I',len(d))+t+d+struct.pack('>I',zlib.crc32(t+d)&0xffffffff)
-    r=bytearray()
-    for y in range(h):
-        r.append(0)
-        for x in range(w): r.extend(p[y][x])
-    ihdr=struct.pack('>IIBBBBB',w,h,8,6,0,0,0)
-    return b'\x89PNG\r\n\x1a\n'+c(b'IHDR',ihdr)+c(b'IDAT',zlib.compress(bytes(r)))+c(b'IEND',b'')
-S={'mdpi':48,'hdpi':72,'xhdpi':96,'xxhdpi':144,'xxxhdpi':192}
-for d,px in S.items():
-    cx,cy,r=px//2,px//2-px//8,px//3-1
-    img=[[(26,26,46,0) for _ in range(px)] for _ in range(px)]
-    for x in range(px):
-        for y in range(px):
-            if (x-cx)*(x-cx)+(y-cy)*(y-cy)<=r*r:
-                img[y][x]=(74,144,217,255)
-    er=px//12
-    for x,y in [(cx-r//2,cy-er*2),(cx+r//2,cy-er*2)]:
-        for dx in range(-er,er+1):
-            for dy in range(-er,er+1):
-                if dx*dx+dy*dy<=er*er and 0<=x+dx<px and 0<=y+dy<px:
-                    img[y+dy][x+dx]=(255,255,255,255)
-    mx,my,sz=cx,cy+er,px//20
-    for dy in range(0,sz*2):
-        for dx in range(-sz+1,sz):
-            if dx*dx+(dy-sz)*(dy-sz)<=sz*sz and 0<=mx+dx<px and 0<=my+dy<px:
-                img[my+dy][mx+dx]=(255,182,193,255)
-    p=png(px,px,img)
-    pth='android-project/app/src/main/res/mipmap-'+d
-    os.makedirs(pth,exist_ok=True)
-    open(pth+'/ic_launcher.png','wb').write(p)
-PYEOF
-
-          # --- PROJECT FILES ---
           mkdir -p android-project/app/src/main/java/com/desktop/pet
           mkdir -p android-project/app/src/main/res/values
+          mkdir -p android-project/app/src/main/res/drawable
           mkdir -p android-project/gradle/wrapper
+          mkdir -p android-project/app/src/main/res/mipmap-mdpi
+          mkdir -p android-project/app/src/main/res/mipmap-hdpi
+          mkdir -p android-project/app/src/main/res/mipmap-xhdpi
+          mkdir -p android-project/app/src/main/res/mipmap-xxhdpi
+          mkdir -p android-project/app/src/main/res/mipmap-xxxhdpi
           mkdir -p android-project/app/src/main/res/mipmap-anydpi-v26
 
           cd android-project
 
-          # build.gradle
-          cat > build.gradle << 'EOF'
-          plugins {
-              id "com.android.application" version "8.2.0" apply false
-          }
-          EOF
+          printf '%s\n' 'plugins {' '    id "com.android.application" version "8.2.0" apply false' '}' > build.gradle
 
-          # settings.gradle
-          cat > settings.gradle << 'EOF'
+          cat > settings.gradle << 'ENDGRADLE'
           pluginManagement {
               repositories { google(); mavenCentral(); gradlePluginPortal() }
           }
@@ -87,26 +47,23 @@ PYEOF
           }
           rootProject.name = "DesktopPet"
           include ":app"
-          EOF
+          ENDGRADLE
 
-          # gradle.properties
-          cat > gradle.properties << 'EOF'
+          cat > gradle.properties << 'ENDPROP'
           org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
           android.useAndroidX=true
           android.enableJetifier=true
-          EOF
+          ENDPROP
 
-          # gradle wrapper
-          cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
+          cat > gradle/wrapper/gradle-wrapper.properties << 'ENDWRAP'
           distributionBase=GRADLE_USER_HOME
           distributionPath=wrapper/dists
           distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-bin.zip
           zipStoreBase=GRADLE_USER_HOME
           zipStorePath=wrapper/dists
-          EOF
+          ENDWRAP
 
-          # app/build.gradle
-          cat > app/build.gradle << 'EOF'
+          cat > app/build.gradle << 'ENDGRADLE'
           plugins {
               id "com.android.application"
           }
@@ -134,21 +91,78 @@ PYEOF
           dependencies {
               implementation "androidx.appcompat:appcompat:1.6.1"
           }
-          EOF
+          ENDGRADLE
 
           touch app/proguard-rules.pro
 
-          # adaptive icon
-          cat > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml << 'EOF'
+          # --- Generate PNG icons via base64 (48x48, 72x72, 96x96, 144x144, 192x192) ---
+          # Minimal blue circle with white eyes - pre-made as base64
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            python3 -c "
+import struct,zlib
+def png(w,img):
+    raw=b''
+    for y in range(w):
+        raw+=b'\x00'+bytes(b for row in img[y*w:(y+1)*w] for b in row)
+    def c(t,d):
+        return struct.pack('>I',len(d))+t+d+struct.pack('>I',zlib.crc32(t+d)&0xffffffff)
+    ihdr=struct.pack('>IIBBBBB',w,w,8,6,0,0,0)
+    return b'\x89PNG\r\n\x1a\n'+c(b'IHDR',ihdr)+c(b'IDAT',zlib.compress(raw))+c(b'IEND',b'')
+import math
+sz={'mdpi':48,'hdpi':72,'xhdpi':96,'xxhdpi':144,'xxxhdpi':192}['${d}']
+cx,cy,r=sz//2,sz//2-sz//8,sz//3-1
+er=sz//12
+nr=sz//20
+pix=[]
+for y in range(sz):
+    for x in range(sz):
+        inside=(x-cx)*(x-cx)+(y-cy)*(y-cy)<=r*r
+        if not inside:pix.extend([26,26,46,0]);continue
+        if (x-(cx-r//2))**2+(y-(cy-er*2))**2<=er*er:pix.extend([255,255,255,255])
+        elif (x-(cx+r//2))**2+(y-(cy-er*2))**2<=er*er:pix.extend([255,255,255,255])
+        elif x>=cx-nr and x<=cx+nr and y>=cy+er and y<=cy+er+nr*2 and (x-cx)**2+(y-cy-er-nr)**2<=nr*nr:pix.extend([255,182,193,255])
+        else:pix.extend([74,144,217,255])
+with open('app/src/main/res/mipmap-${d}/ic_launcher.png','wb') as f:
+    f.write(png(sz,pix))
+print('${d} icon ok')
+" 2>&1 || python3 -c "
+import struct,zlib
+def png(w,img):
+    raw=b''
+    for y in range(w):
+        raw+=b'\x00'+bytes(b for row in img[y*w:(y+1)*w] for b in row)
+    def c(t,d):
+        return struct.pack('>I',len(d))+t+d+struct.pack('>I',zlib.crc32(t+d)&0xffffffff)
+    ihdr=struct.pack('>IIBBBBB',w,w,8,6,0,0,0)
+    return b'\x89PNG\r\n\x1a\n'+c(b'IHDR',ihdr)+c(b'IDAT',zlib.compress(raw))+c(b'IEND',b'')
+sz={'mdpi':48,'hdpi':72,'xhdpi':96,'xxhdpi':144,'xxxhdpi':192}['${d}']
+cx,cy,r=sz//2,sz//2-sz//8,sz//3-1
+er=sz//12
+pix=[]
+for y in range(sz):
+    for x in range(sz):
+        if (x-cx)**2+(y-cy)**2<=r*r:
+            if (x-(cx-r//2))**2+(y-(cy-er*2))**2<=er*er or (x-(cx+r//2))**2+(y-(cy-er*2))**2<=er*er:
+                pix.extend([255,255,255,255])
+            else:
+                pix.extend([74,144,217,255])
+        else:
+            pix.extend([26,26,46,0])
+with open('app/src/main/res/mipmap-${d}/ic_launcher.png','wb') as f:
+    f.write(png(sz,pix))
+print('${d} icon ok')
+"
+          done
+
+          cat > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml << 'ENDXML'
           <?xml version="1.0" encoding="utf-8"?>
           <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
               <background android:drawable="@mipmap/ic_launcher"/>
               <foreground android:drawable="@mipmap/ic_launcher"/>
           </adaptive-icon>
-          EOF
+          ENDXML
 
-          # AndroidManifest.xml
-          cat > app/src/main/AndroidManifest.xml << 'EOF'
+          cat > app/src/main/AndroidManifest.xml << 'ENDXML'
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET" />
@@ -168,10 +182,9 @@ PYEOF
                   </activity>
               </application>
           </manifest>
-          EOF
+          ENDXML
 
-          # styles
-          cat > app/src/main/res/values/styles.xml << 'EOF'
+          cat > app/src/main/res/values/styles.xml << 'ENDXML2'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
@@ -179,10 +192,9 @@ PYEOF
                   <item name="android:navigationBarColor">#1a1a2e</item>
               </style>
           </resources>
-          EOF
+          ENDXML2
 
-          # MainActivity
-          cat > app/src/main/java/com/desktop/pet/MainActivity.java << 'EOF'
+          cat > app/src/main/java/com/desktop/pet/MainActivity.java << 'ENDJAVA'
           package com.desktop.pet;
           import android.os.Bundle;
           import android.webkit.*;
@@ -208,7 +220,7 @@ PYEOF
                   else super.onBackPressed();
               }
           }
-          EOF
+          ENDJAVA
 
           echo "Project ready"
 
