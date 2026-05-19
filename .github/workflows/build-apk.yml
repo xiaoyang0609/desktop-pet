@@ -61,14 +61,26 @@ jobs:
             .catch(e => { console.error('❌', e.message); process.exit(1); });
           SCRIPT
           node gen.cjs 2>&1
-      - name: Build APK
+      - name: Build and sign APK
         run: |
           cd app-output
           chmod +x gradlew
           ./gradlew assembleRelease 2>&1
+          echo "=== Signing APK ==="
+          UNSIGNED=$(find . -name "*-unsigned.apk" -type f 2>/dev/null | head -1)
+          if [ -n "$UNSIGNED" ]; then
+            SIGNED="${UNSIGNED/-unsigned/}"
+            jarsigner -verbose -keystore ../release.keystore -storepass android -keypass android -sigalg SHA256withRSA -digestalg SHA-256 "$UNSIGNED" desktop-pet
+            cp "$UNSIGNED" "$SIGNED"
+            echo "✅ Signed APK: $SIGNED"
+            ls -la "$SIGNED"
+          else
+            echo "⚠️ No unsigned APK found, checking for signed ones..."
+            find . -name "*.apk" -type f
+          fi
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: desktop-pet-apk
           path: "**/*.apk"
-          if-no-files-found: warn
+          if-no-files-found: error
