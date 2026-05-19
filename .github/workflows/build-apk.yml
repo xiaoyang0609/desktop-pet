@@ -6,7 +6,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -29,34 +29,38 @@ jobs:
       - name: Install bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Build APK
+      - name: Generate keystore
+        run: |
+          keytool -genkey -v -keystore release.keystore -alias desktop-pet -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=DesktopPet, OU=Dev, O=Pet, L=Unknown, ST=Unknown, C=CN"
+
+      - name: Init Android project
         run: |
           mkdir -p app-output
           cd app-output
+          # script creates TTY -> bubblewrap inquirer prompts work
+          # provide: No to JDK install, then JDK path, then Android SDK path
+          timeout 120 bash -c '
+            echo -e "n\n${JAVA_HOME}\n${ANDROID_HOME}" | \
+            script -q -fc "bubblewrap init \
+              --manifest https://xiaoyang0609.github.io/desktop-pet/manifest.json \
+              --directory . \
+              --jks-path ../release.keystore \
+              --jks-key-alias desktop-pet \
+              --jks-password android" /dev/null
+          ' || true
 
-          # Generate temp keystore for signing
-          keytool -genkey -v -keystore release.keystore -alias desktop-pet -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Pet, OU=Dev, O=Pet, L=Unknown, ST=Unknown, C=CN"
-
-          # Use expect-like approach to handle interactive prompts
-          # Provide JDK path and Android SDK path, then empty lines for remaining
-          timeout 120 bubblewrap init \
-            --manifest https://xiaoyang0609.github.io/desktop-pet/manifest.json \
-            --directory . \
-            --jks-path release.keystore \
-            --jks-key-alias desktop-pet \
-            --jks-password android
-
-      - name: Build APK (step 2)
+      - name: Build APK
         run: |
           cd app-output
-          timeout 300 bubblewrap build --skipPwaValidation --skipVersionUpdate 2>&1 || timeout 300 bubblewrap build 2>&1
+          ls -la
+          # Build with 25-minute timeout for Gradle first-time setup
+          timeout 1500 script -q -fc "bubblewrap build" /dev/null
 
-      - name: Show APK
+      - name: Find APK
         run: |
-          echo "=== Find APK ==="
-          find . -name "*.apk" -type f 2>/dev/null
-          echo "=== app-output contents ==="
-          ls -la app-output/ 2>/dev/null || true
+          echo "=== Search APK ==="
+          find . -name "*.apk" -type f 2>/dev/null || echo "no APK"
+          find /home/runner -name "*.apk" -type f 2>/dev/null || true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
