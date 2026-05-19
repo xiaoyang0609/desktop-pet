@@ -26,41 +26,88 @@ jobs:
         with:
           accept-android-sdk-licenses: true
 
-      - name: Install bubblewrap
+      - name: Install @bubblewrap/cli
         run: npm install -g @bubblewrap/cli
 
-      - name: Generate keystore
-        run: |
-          keytool -genkey -v -keystore release.keystore -alias desktop-pet -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=DesktopPet, OU=Dev, O=Pet, L=Unknown, ST=Unknown, C=CN"
-
-      - name: Init Android project
+      - name: Generate Android project via Node script
         run: |
           mkdir -p app-output
+
+          # Create a Node.js script that generates the project programmatically
+          cat > generate.mjs << 'SCRIPT'
+          import { TwaGenerator, TwaManifest, Log } from '@bubblewrap/core';
+          import * as path from 'path';
+          import * as fs from 'fs';
+          import { fileURLToPath } from 'url';
+
+          const __dirname = path.dirname(fileURLToPath(import.meta.url));
+          const outputDir = path.join(__dirname, 'app-output');
+
+          const manifest = new TwaManifest({
+            packageId: 'com.desktop.pet',
+            host: 'xiaoyang0609.github.io',
+            name: '桌面宠物',
+            launcherName: '桌面宠物',
+            startUrl: '/desktop-pet/',
+            display: 'standalone',
+            orientation: 'any',
+            themeColor: '#4A90D9',
+            backgroundColor: '#1a1a2e',
+            appVersionName: '1.0',
+            appVersionCode: 1,
+            iconUrl: 'https://xiaoyang0609.github.io/desktop-pet/pet_cat.png',
+            maskableIconUrl: 'https://xiaoyang0609.github.io/desktop-pet/pet_cat.png',
+            monochromeIconUrl: 'https://xiaoyang0609.github.io/desktop-pet/pet_cat.png',
+            signingKey: {
+              path: path.join(__dirname, 'release.keystore'),
+              keyAlias: 'desktop-pet',
+              keyPassword: 'android',
+              storePassword: 'android',
+            },
+            shortcuts: [],
+            fallbackUrl: '',
+            appVersion: '1.0.0',
+            splashScreenFadeOutDuration: 300,
+            enableSiteSettingsShortcut: true,
+            isAgentAllowed: false,
+            isDomainInclusionRequired: false,
+            apkUrl: '',
+            includeSourceInfo: false,
+            appVersionIsAWebsite: false,
+          });
+
+          const generator = new TwaGenerator();
+          const log = new Log('cli');
+          await generator.createTwaProject(outputDir, manifest, log);
+          console.log('✅ TWA project generated in', outputDir);
+          SCRIPT
+
+          # Generate keystore
+          keytool -genkey -v -keystore release.keystore -alias desktop-pet -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Pet, OU=Dev, O=Pet, L=Unknown, ST=Unknown, C=CN"
+
+          # Run the script
           cd app-output
-          # script creates TTY -> bubblewrap inquirer prompts work
-          # provide: No to JDK install, then JDK path, then Android SDK path
-          timeout 120 bash -c '
-            echo -e "n\n${JAVA_HOME}\n${ANDROID_HOME}" | \
-            script -q -fc "bubblewrap init \
-              --manifest https://xiaoyang0609.github.io/desktop-pet/manifest.json \
-              --directory . \
-              --jks-path ../release.keystore \
-              --jks-key-alias desktop-pet \
-              --jks-password android" /dev/null
-          ' || true
+          node ../generate.mjs 2>&1
 
       - name: Build APK
         run: |
           cd app-output
+          echo "=== Files ==="
           ls -la
-          # Build with 25-minute timeout for Gradle first-time setup
-          timeout 1500 script -q -fc "bubblewrap build" /dev/null
+          echo ""
+          echo "=== Project files ==="
+          find . -name "*.gradle" -o -name "*.xml" -o -name "*.java" 2>/dev/null | head -20
+          echo ""
+          echo "=== Build ==="
+          chmod +x gradlew
+          ./gradlew assembleRelease 2>&1 || true
 
-      - name: Find APK
+      - name: Find and upload APK
         run: |
-          echo "=== Search APK ==="
-          find . -name "*.apk" -type f 2>/dev/null || echo "no APK"
-          find /home/runner -name "*.apk" -type f 2>/dev/null || true
+          echo "=== Find APK ==="
+          find /home/runner/work -name "*.apk" -type f 2>/dev/null
+          find . -name "*.apk" -type f 2>/dev/null
+          find /home/runner -name "*.apk" -type f -exec ls -la {} \;
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
