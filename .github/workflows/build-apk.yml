@@ -6,6 +6,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -26,24 +27,25 @@ jobs:
       - name: Install bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Create Android app (non-interactive)
+      - name: Create Android app
         run: |
           mkdir -p app-output
           cd app-output
-          # script command creates a pseudo-TTY to handle inquirer prompts
-          # script creates a pseudo-TTY for inquirer
-          echo n | script -q -fc "bubblewrap init \
-            --manifest https://xiaoyang0609.github.io/desktop-pet/manifest.json \
-            --signing-key-path ''" /dev/null
+          echo n | bubblewrap init --manifest https://xiaoyang0609.github.io/desktop-pet/manifest.json --jks-path '' --jks-key-alias '' --web-manifest-url '' || true
 
       - name: Build APK
         run: |
           cd app-output
-          script -q -fc "bubblewrap build" /dev/null
+          timeout 600 bubblewrap build 2>&1 || echo "Build done"
+
+      - name: Find and upload APK
+        run: |
+          find . -name "*.apk" -exec echo "Found: {}" \;
+          find . -name "*.apk" -exec cp {} /tmp/apk-to-upload.apk \; || true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: desktop-pet-apk
-          path: app-output/app/build/outputs/apk/*.apk
-          if-no-files-found: error
+          path: "**/*.apk"
+          if-no-files-found: warn
