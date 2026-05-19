@@ -19,16 +19,80 @@ jobs:
         with:
           accept-android-sdk-licenses: true
 
+      - name: Generate icons
+        run: |
+          pip3 install Pillow -q 2>/dev/null || true
+          python3 -c "
+import os, struct, zlib
+def make_png(w,h,pixels):
+    def chunk(typ,data):
+        c=typ+data
+        return struct.pack('>I',len(data))+c+struct.pack('>I',zlib.crc32(c)&0xffffffff)
+    raw=b''
+    for y in range(h):
+        raw+=b'\x00'
+        for x in range(w):
+            raw+=bytes(pixels[y][x])
+    ihdr=struct.pack('>IIBBBBB',w,h,8,6,0,0,0)
+    return b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',ihdr)+chunk(b'IDAT',zlib.compress(raw))+chunk(b'IEND',b'')
+import math
+sizes={'mdpi':48,'hdpi':72,'xhdpi':96,'xxhdpi':144,'xxxhdpi':192}
+for den,px in sizes.items():
+    img=[]
+    for y in range(px):
+        row=[]
+        for x in range(px):
+            cx,cy=px//2,px//2-px//8
+            r=px//3-1
+            dx,dy=x-cx,y-cy
+            if dx*dx+dy*dy<=r*r:
+                row.append((74,144,217,255))
+            else:
+                row.append((26,26,46,0))
+        img.append(row)
+    er=px//12
+    for x in range(px):
+        for y in range(px):
+            cx,cy=px//2,px//2-px//8
+            r=px//3-1
+            dx,dy=x-cx,y-cy
+            if dx*dx+dy*dy>r*r: continue
+            # eye left
+            elx,ely=cx-r//2,cy-er*2
+            edx,edy=x-elx,y-ely
+            if edx*edx+edy*edy<=er*er: img[y][x]=(255,255,255,255)
+            # eye right
+            erx,ery=cx+r//2,cy-er*2
+            edx2,edy2=x-erx,y-ery
+            if edx2*edx2+edy2*edy2<=er*er: img[y][x]=(255,255,255,255)
+    # mouth
+    nr=px//20
+    mx,my=cx,cy+er
+    if my+2*nr>=0 and my<px and mx-nr>=0 and mx+nr<px:
+        for yy in range(my,min(my+nr*2,px-1)):
+            for xx in range(mx-nr,min(mx+nr,px-1)):
+                dy=yy-my
+                halfw=int(math.sqrt(max(0,nr*nr-(dy-nr)*(dy-nr))))
+                if xx>=mx-halfw and xx<=mx+halfw:
+                    img[yy][xx]=(255,182,193,255)
+    png=make_png(px,px,img)
+    d='android-project/app/src/main/res/mipmap-'+den
+    os.makedirs(d,exist_ok=True)
+    with open(d+'/ic_launcher.png','wb') as f: f.write(png)
+    print(den,px,'OK')
+print('Icons done')
+"
+
       - name: Create Android project
         run: |
           set -e
-          mkdir -p android-project
-          cd android-project
+          cd android-project || mkdir android-project && cd android-project
 
           mkdir -p app/src/main/java/com/desktop/pet
           mkdir -p app/src/main/res/values
           mkdir -p app/src/main/res/drawable
           mkdir -p gradle/wrapper
+          mkdir -p app/src/main/res/mipmap-anydpi-v26
 
           # build.gradle (top-level)
           printf '%s\n' 'plugins {' '    id "com.android.application" version "8.2.0" apply false' '}' > build.gradle
@@ -42,7 +106,13 @@ jobs:
           printf '%s\n' 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8' 'android.useAndroidX=true' 'android.enableJetifier=true' > gradle.properties
 
           # gradle wrapper properties
-          printf '%s\n' 'distributionBase=GRADLE_USER_HOME' 'distributionPath=wrapper/dists' 'distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-bin.zip' > gradle/wrapper/gradle-wrapper.properties
+          cat > gradle/wrapper/gradle-wrapper.properties << 'ENDGRADLE'
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-bin.zip
+          zipStoreBase=GRADLE_USER_HOME
+          zipStorePath=wrapper/dists
+          ENDGRADLE
 
           # app/build.gradle
           cat > app/build.gradle << 'ENDGRADLE'
@@ -56,8 +126,8 @@ jobs:
                   applicationId "com.desktop.pet"
                   minSdk 21
                   targetSdk 34
-                  versionCode 1
-                  versionName "1.0"
+                  versionCode 2
+                  versionName "1.1"
               }
               buildTypes {
                   release {
@@ -77,6 +147,15 @@ jobs:
 
           touch app/proguard-rules.pro
 
+          # adaptive icon XML
+          cat > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml << 'ENDXML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@mipmap/ic_launcher"/>
+              <foreground android:drawable="@mipmap/ic_launcher"/>
+          </adaptive-icon>
+          ENDXML
+
           # AndroidManifest.xml
           cat > app/src/main/AndroidManifest.xml << 'ENDXML'
           <?xml version="1.0" encoding="utf-8"?>
@@ -85,10 +164,12 @@ jobs:
               <application
                   android:label="桌面宠物"
                   android:theme="@style/AppTheme"
+                  android:icon="@mipmap/ic_launcher"
                   android:usesCleartextTraffic="false">
                   <activity
                       android:name=".MainActivity"
-                      android:exported="true">
+                      android:exported="true"
+                      android:configChanges="orientation|screenSize|keyboardHidden">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
                           <category android:name="android.intent.category.LAUNCHER" />
@@ -98,20 +179,18 @@ jobs:
           </manifest>
           ENDXML
 
-          # styles.xml
+          # styles.xml - FIX: use AppCompat theme, not android:Theme.Material!
           cat > app/src/main/res/values/styles.xml << 'ENDXML2'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <style name="AppTheme" parent="android:Theme.Material.NoActionBar">
-                  <item name="android:windowFullscreen">true</item>
-                  <item name="android:windowNoTitle">true</item>
+              <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
                   <item name="android:statusBarColor">#1a1a2e</item>
                   <item name="android:navigationBarColor">#1a1a2e</item>
               </style>
           </resources>
           ENDXML2
 
-          # MainActivity.java
+          # MainActivity.java - FIX: add error handling and logging
           cat > app/src/main/java/com/desktop/pet/MainActivity.java << 'ENDJAVA'
           package com.desktop.pet;
 
@@ -120,11 +199,16 @@ jobs:
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
           import android.webkit.WebResourceRequest;
-          import android.widget.FrameLayout;
+          import android.webkit.WebResourceError;
+          import android.graphics.Bitmap;
+          import android.util.Log;
+          import android.widget.Toast;
           import androidx.appcompat.app.AppCompatActivity;
 
           public class MainActivity extends AppCompatActivity {
               private WebView webView;
+              private static final String TAG = "DesktopPet";
+              private static final String URL = "https://xiaoyang0609.github.io/desktop-pet/";
 
               @Override
               protected void onCreate(Bundle savedInstanceState) {
@@ -136,20 +220,38 @@ jobs:
                   settings.setDomStorageEnabled(true);
                   settings.setLoadWithOverviewMode(true);
                   settings.setUseWideViewPort(true);
+                  settings.setAllowFileAccess(false);
+                  settings.setAllowContentAccess(false);
+                  settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
 
                   webView.setWebViewClient(new WebViewClient() {
                       @Override
                       public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                           String url = request.getUrl().toString();
-                          if (url.contains("xiaoyang0609.github.io")) {
+                          if (url.startsWith(URL)) {
                               return false;
                           }
                           return true;
                       }
+
+                      @Override
+                      public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                          Log.d(TAG, "Loading: " + url);
+                      }
+
+                      @Override
+                      public void onPageFinished(WebView view, String url) {
+                          Log.d(TAG, "Loaded: " + url);
+                      }
+
+                      @Override
+                      public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                          Log.e(TAG, "Error loading " + request.getUrl() + ": " + error.getDescription());
+                      }
                   });
 
                   setContentView(webView);
-                  webView.loadUrl("https://xiaoyang0609.github.io/desktop-pet/");
+                  webView.loadUrl(URL);
               }
 
               @Override
