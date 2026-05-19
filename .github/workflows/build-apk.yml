@@ -50,7 +50,7 @@ jobs:
             isChromeOSOnly: false, isMetaQuest: false,
             isAgentAllowed: false, isDomainInclusionRequired: false,
             apkUrl: '', includeSourceInfo: false, appVersionIsAWebsite: false,
-            minSdkVersion: 19,
+            minSdkVersion: 21,
             features: {}, fingerprints: [],
             additionalTrustedOrigins: [], retainedBundles: [],
           });
