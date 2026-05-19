@@ -29,22 +29,33 @@ jobs:
       - name: Install bubblewrap
         run: npm install -g @bubblewrap/cli
 
-      - name: Initialize Android app
+      - name: Build APK
         run: |
           mkdir -p app-output
           cd app-output
-          printf 'n\n%s\n' "$JAVA_HOME" | bubblewrap init --manifest https://xiaoyang0609.github.io/desktop-pet/manifest.json --jks-path '' --jks-key-alias '' --web-manifest-url ''
 
-      - name: Build APK
+          # Generate temp keystore for signing
+          keytool -genkey -v -keystore release.keystore -alias desktop-pet -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Pet, OU=Dev, O=Pet, L=Unknown, ST=Unknown, C=CN"
+
+          # Use expect-like approach to handle interactive prompts
+          # Provide JDK path and Android SDK path, then empty lines for remaining
+          timeout 120 bubblewrap init \
+            --manifest https://xiaoyang0609.github.io/desktop-pet/manifest.json \
+            --directory . \
+            --jks-path release.keystore \
+            --jks-key-alias desktop-pet \
+            --jks-password android
+
+      - name: Build APK (step 2)
         run: |
           cd app-output
-          bubblewrap build 2>&1
+          timeout 300 bubblewrap build --skipPwaValidation --skipVersionUpdate 2>&1 || timeout 300 bubblewrap build 2>&1
 
-      - name: Show output
+      - name: Show APK
         run: |
           echo "=== Find APK ==="
-          find . -name "*.apk" 2>/dev/null
-          echo "=== app-output ==="
+          find . -name "*.apk" -type f 2>/dev/null
+          echo "=== app-output contents ==="
           ls -la app-output/ 2>/dev/null || true
 
       - name: Upload APK
