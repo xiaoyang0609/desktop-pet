@@ -9,101 +9,73 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         with:
           accept-android-sdk-licenses: true
-
       - name: Generate Android project
         run: |
           npm install @bubblewrap/core sharp 2>&1 | tail -3
-
           keytool -genkey -v -keystore release.keystore -alias desktop-pet -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Pet, OU=Dev, O=Pet, L=Unknown, ST=Unknown, C=CN"
-
-          # Convert icon to PNG then embed as data URL
-          node -e "
+          mkdir -p app-output
+          node << 'EOF'
           const https = require('https');
           const sharp = require('sharp');
-          https.get('https://xiaoyang0609.github.io/desktop-pet/icon.svg', (res) => {
-            const c = [];
-            res.on('data', d => c.push(d));
-            res.on('end', async () => {
-              const png = await sharp(Buffer.concat(c)).resize(512,512).png().toBuffer();
-              const b64 = png.toString('base64');
-              const dataUrl = 'data:image/png;base64,' + b64;
-
-              const { TwaGenerator, TwaManifest, ConsoleLog } = require('@bubblewrap/core');
-              const path = require('path');
-              const cwd = process.cwd();
-
-              const manifest = new TwaManifest({
-                packageId: 'com.desktop.pet',
-                host: 'xiaoyang0609.github.io',
-                name: '桌面宠物',
-                launcherName: '桌面宠物',
-                startUrl: '/desktop-pet/',
-                display: 'standalone',
-                orientation: 'any',
-                themeColor: '#4A90D9',
-                backgroundColor: '#1a1a2e',
-                appVersionName: '1.0',
-                appVersionCode: 1,
-                iconUrl: dataUrl,
-                maskableIconUrl: dataUrl,
-                monochromeIconUrl: dataUrl,
-                signingKey: {
-                  path: path.join(cwd, 'release.keystore'),
-                  keyAlias: 'desktop-pet',
-                  keyPassword: 'android',
-                  storePassword: 'android',
-                },
-                shortcuts: [],
-                fallbackUrl: '',
-                appVersion: '1.0.0',
-                splashScreenFadeOutDuration: 300,
-                enableSiteSettingsShortcut: true,
-                isAgentAllowed: false,
-                isDomainInclusionRequired: false,
-                apkUrl: '',
-                includeSourceInfo: false,
-                appVersionIsAWebsite: false,
+          const { TwaGenerator, TwaManifest, ConsoleLog } = require('@bubblewrap/core');
+          const path = require('path');
+          const cwd = process.cwd();
+          async function main() {
+            const png = await new Promise((resolve, reject) => {
+              https.get('https://xiaoyang0609.github.io/desktop-pet/icon.svg', (res) => {
+                const c = [];
+                res.on('data', d => c.push(d));
+                res.on('end', async () => {
+                  try { resolve(await sharp(Buffer.concat(c)).resize(512,512).png().toBuffer()); }
+                  catch(e) { reject(e); }
+                });
+                res.on('error', reject);
               });
-
-              const generator = new TwaGenerator();
-              const log = new ConsoleLog('generate');
-              const outputDir = path.join(cwd, 'app-output');
-              await generator.createTwaProject(outputDir, manifest, log);
-              console.log('✅ Project generated!');
             });
-          });
-          " 2>&1
-
+            const dataUrl = 'data:image/png;base64,' + png.toString('base64');
+            const manifest = new TwaManifest({
+              packageId: 'com.desktop.pet',
+              host: 'xiaoyang0609.github.io',
+              name: '桌面宠物',
+              launcherName: '桌面宠物',
+              startUrl: '/desktop-pet/',
+              display: 'standalone',
+              orientation: 'any',
+              themeColor: '#4A90D9',
+              backgroundColor: '#1a1a2e',
+              appVersionName: '1.0', appVersionCode: 1,
+              iconUrl: dataUrl, maskableIconUrl: dataUrl, monochromeIconUrl: dataUrl,
+              signingKey: { path: path.join(cwd, 'release.keystore'), keyAlias: 'desktop-pet', keyPassword: 'android', storePassword: 'android' },
+              shortcuts: [], fallbackUrl: '', appVersion: '1.0.0',
+              splashScreenFadeOutDuration: 300, enableSiteSettingsShortcut: true,
+              isAgentAllowed: false, isDomainInclusionRequired: false,
+              apkUrl: '', includeSourceInfo: false, appVersionIsAWebsite: false,
+            });
+            const generator = new TwaGenerator();
+            const log = new ConsoleLog('generate');
+            await generator.createTwaProject(path.join(cwd, 'app-output'), manifest, log);
+            console.log('✅ Project generated!');
+          }
+          main().catch(e => { console.error('❌', e.message); process.exit(1); });
+          EOF
       - name: Build APK
         run: |
           cd app-output
           chmod +x gradlew
-          echo "=== Files ==="
-          ls -la
-          echo "=== Building ==="
           ./gradlew assembleRelease 2>&1
-
-      - name: Find and upload APK
-        run: |
-          find . -name "*.apk" -type f 2>/dev/null
-          find /home/runner -name "*.apk" -type f 2>/dev/null || true
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
