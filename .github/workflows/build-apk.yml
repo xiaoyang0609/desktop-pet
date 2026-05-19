@@ -39,11 +39,20 @@ jobs:
             orientation: 'any', themeColor: '#4A90D9', backgroundColor: '#1a1a2e',
             appVersionName: '1.0', appVersionCode: 1,
             iconUrl: icon, maskableIconUrl: icon, monochromeIconUrl: icon,
-            signingKey: { path: path.join(cwd, 'release.keystore'), keyAlias: 'desktop-pet', keyPassword: 'android', storePassword: 'android' },
+            signingKey: {
+              path: path.join(cwd, 'release.keystore'),
+              keyAlias: 'desktop-pet', keyPassword: 'android', storePassword: 'android',
+            },
             shortcuts: [], fallbackUrl: '', appVersion: '1.0.0',
-            splashScreenFadeOutDuration: 300, enableSiteSettingsShortcut: true,
+            splashScreenFadeOutDuration: 300,
+            enableSiteSettingsShortcut: true, enableNotifications: false,
+            alphaDependencies: { enabled: false },
+            isChromeOSOnly: false, isMetaQuest: false,
             isAgentAllowed: false, isDomainInclusionRequired: false,
             apkUrl: '', includeSourceInfo: false, appVersionIsAWebsite: false,
+            minSdkVersion: 19,
+            features: {}, fingerprints: [],
+            additionalTrustedOrigins: [], retainedBundles: [],
           });
           const generator = new TwaGenerator();
           const log = new ConsoleLog('generate');
