@@ -66,21 +66,37 @@ jobs:
           cd app-output
           chmod +x gradlew
           ./gradlew assembleRelease 2>&1
-          echo "=== Signing APK ==="
+          
+          echo "=== Signing & Aligning APK ==="
           UNSIGNED=$(find . -name "*-unsigned.apk" -type f 2>/dev/null | head -1)
-          if [ -n "$UNSIGNED" ]; then
-            SIGNED="${UNSIGNED/-unsigned/}"
-            jarsigner -verbose -keystore ../release.keystore -storepass android -keypass android -sigalg SHA256withRSA -digestalg SHA-256 "$UNSIGNED" desktop-pet
-            cp "$UNSIGNED" "$SIGNED"
-            echo "✅ Signed APK: $SIGNED"
-            ls -la "$SIGNED"
-          else
-            echo "⚠️ No unsigned APK found, checking for signed ones..."
+          if [ -z "$UNSIGNED" ]; then
+            echo "ERROR: No unsigned APK found"
             find . -name "*.apk" -type f
+            exit 1
           fi
+          
+          # zipalign first
+          BUILD_TOOLS="${ANDROID_HOME}/build-tools"
+          ZIPALIGN_DIR=$(ls -d "$BUILD_TOOLS"/*/ 2>/dev/null | sort -r | head -1)
+          ZIPALIGN="${ZIPALIGN_DIR}zipalign"
+          
+          ALIGNED="${UNSIGNED/-unsigned/-aligned}"
+          SIGNED="${UNSIGNED/-unsigned/}"
+          
+          $ZIPALIGN -v -p 4 "$UNSIGNED" "$ALIGNED" 2>&1
+          echo "✅ Zipaligned: $ALIGNED"
+          
+          # Sign with apksigner (supports v1+v2+v3)
+          APKSIGNER="${ZIPALIGN_DIR}apksigner"
+          $APKSIGNER sign --ks ../release.keystore --ks-key-alias desktop-pet --ks-pass pass:android --key-pass pass:android --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --out "$SIGNED" "$ALIGNED" 2>&1
+          
+          # Verify
+          $APKSIGNER verify --verbose "$SIGNED" 2>&1
+          
+          echo "✅ Signed APK: $SIGNED ($(stat -c%s "$SIGNED") bytes)"
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: desktop-pet-apk
-          path: "**/*.apk"
+          path: "**/app-release.apk"
           if-no-files-found: error
