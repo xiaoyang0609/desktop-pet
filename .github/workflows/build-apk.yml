@@ -27,7 +27,7 @@ jobs:
           npm install @bubblewrap/core 2>&1 | tail -3
           keytool -genkey -v -keystore release.keystore -alias desktop-pet -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Pet, OU=Dev, O=Pet, L=Unknown, ST=Unknown, C=CN"
           mkdir -p app-output
-          node << 'EOF'
+          cat > gen.cjs << 'SCRIPT'
           const { TwaGenerator, TwaManifest, ConsoleLog } = require('@bubblewrap/core');
           const path = require('path');
           const cwd = process.cwd();
@@ -47,9 +47,11 @@ jobs:
           });
           const generator = new TwaGenerator();
           const log = new ConsoleLog('generate');
-          await generator.createTwaProject(path.join(cwd, 'app-output'), manifest, log);
-          console.log('✅ Project generated!');
-          EOF
+          generator.createTwaProject(path.join(cwd, 'app-output'), manifest, log)
+            .then(() => console.log('✅ Project generated!'))
+            .catch(e => { console.error('❌', e.message); process.exit(1); });
+          SCRIPT
+          node gen.cjs 2>&1
       - name: Build APK
         run: |
           cd app-output
