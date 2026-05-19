@@ -1,6 +1,8 @@
 name: Build Android WebView APK
 
 on:
+  push:
+    branches: [master]
   workflow_dispatch:
 
 jobs:
