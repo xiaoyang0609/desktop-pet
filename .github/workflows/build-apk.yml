@@ -176,10 +176,10 @@ jobs:
           [ -z "$APK" ] && APK=$(find . -name "*.apk" -type f | head -1)
           [ -z "$APK" ] && { echo "No APK"; find . -name "*.apk"; exit 1; }
           BT=$(ls -d ${ANDROID_HOME}/build-tools/*/ | sort -r | head -1)
-          keytool -genkey -v -keystore k.jks -alias k -keyalg RSA -keysize 2048 -storepass p -keypass p -dname "CN=P" -validity 10000 2>/dev/null
+          keytool -genkey -v -keystore k.jks -alias k -keyalg RSA -keysize 2048 -storepass android -keypass android -dname "CN=Pet" -validity 10000 2>/dev/null
           ${BT}zipalign -p 4 "$APK" "${APK%.apk}-a.apk" 2>&1
           mv -f "${APK%.apk}-a.apk" "$APK"
-          ${BT}apksigner sign --ks k.jks --ks-key-alias k --ks-pass pass:p --key-pass pass:p "$APK" 2>&1
+          ${BT}apksigner sign --ks k.jks --ks-key-alias k --ks-pass pass:android --key-pass pass:android "$APK" 2>&1
           ${BT}apksigner verify --verbose "$APK" 2>&1
           echo "DONE=$(stat -c%s "$APK") bytes"
 
