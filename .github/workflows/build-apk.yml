@@ -76,9 +76,9 @@ jobs:
             appVersionIsAWebsite: false,
           });
 
-          const { Log } = require('@bubblewrap/core');
+          const { ConsoleLog } = require('@bubblewrap/core');
           const generator = new TwaGenerator();
-          const log = new Log('generate');
+          const log = new ConsoleLog('generate');
           generator.createTwaProject(outputDir, manifest, log).then(() =>
             console.log('✅ TWA project generated in', outputDir)
           ).catch((e) => {
