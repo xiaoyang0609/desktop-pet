@@ -18,31 +18,174 @@ jobs:
       - uses: android-actions/setup-android@v3
         with:
           accept-android-sdk-licenses: true
-      - name: Build
+
+      - name: Create Android project
         run: |
           set -e
-          pip3 install Pillow -q 2>/dev/null || true
-          python3 build-android.py
+          mkdir -p android-project
+          cd android-project
+
+          mkdir -p app/src/main/java/com/desktop/pet
+          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/drawable
+          mkdir -p gradle/wrapper
+
+          # build.gradle (top-level)
+          printf '%s\n' 'plugins {' '    id "com.android.application" version "8.2.0" apply false' '}' > build.gradle
+
+          # settings.gradle
+          printf '%s\n' 'pluginManagement {' '    repositories { google(); mavenCentral(); gradlePluginPortal() }' '}' > settings.gradle
+          printf '%s\n' 'dependencyResolutionManagement {' '    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)' '    repositories { google(); mavenCentral() }' '}' >> settings.gradle
+          printf '%s\n' "rootProject.name = \"DesktopPet\"" 'include ":app"' >> settings.gradle
+
+          # gradle.properties
+          printf '%s\n' 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8' 'android.useAndroidX=true' 'android.enableJetifier=true' > gradle.properties
+
+          # gradle wrapper properties
+          printf '%s\n' 'distributionBase=GRADLE_USER_HOME' 'distributionPath=wrapper/dists' 'distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-bin.zip' > gradle/wrapper/gradle-wrapper.properties
+
+          # app/build.gradle
+          cat > app/build.gradle << 'ENDGRADLE'
+          plugins {
+              id "com.android.application"
+          }
+          android {
+              namespace "com.desktop.pet"
+              compileSdk 34
+              defaultConfig {
+                  applicationId "com.desktop.pet"
+                  minSdk 21
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.0"
+              }
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                      proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+                  }
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+          dependencies {
+              implementation "androidx.appcompat:appcompat:1.6.1"
+          }
+          ENDGRADLE
+
+          touch app/proguard-rules.pro
+
+          # AndroidManifest.xml
+          cat > app/src/main/AndroidManifest.xml << 'ENDXML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET" />
+              <application
+                  android:label="桌面宠物"
+                  android:theme="@style/AppTheme"
+                  android:usesCleartextTraffic="false">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          ENDXML
+
+          # styles.xml
+          cat > app/src/main/res/values/styles.xml << 'ENDXML2'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="AppTheme" parent="android:Theme.Material.NoActionBar">
+                  <item name="android:windowFullscreen">true</item>
+                  <item name="android:windowNoTitle">true</item>
+                  <item name="android:statusBarColor">#1a1a2e</item>
+                  <item name="android:navigationBarColor">#1a1a2e</item>
+              </style>
+          </resources>
+          ENDXML2
+
+          # MainActivity.java
+          cat > app/src/main/java/com/desktop/pet/MainActivity.java << 'ENDJAVA'
+          package com.desktop.pet;
+
+          import android.os.Bundle;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import android.webkit.WebResourceRequest;
+          import android.widget.FrameLayout;
+          import androidx.appcompat.app.AppCompatActivity;
+
+          public class MainActivity extends AppCompatActivity {
+              private WebView webView;
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+
+                  webView = new WebView(this);
+                  WebSettings settings = webView.getSettings();
+                  settings.setJavaScriptEnabled(true);
+                  settings.setDomStorageEnabled(true);
+                  settings.setLoadWithOverviewMode(true);
+                  settings.setUseWideViewPort(true);
+
+                  webView.setWebViewClient(new WebViewClient() {
+                      @Override
+                      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                          String url = request.getUrl().toString();
+                          if (url.contains("xiaoyang0609.github.io")) {
+                              return false;
+                          }
+                          return true;
+                      }
+                  });
+
+                  setContentView(webView);
+                  webView.loadUrl("https://xiaoyang0609.github.io/desktop-pet/");
+              }
+
+              @Override
+              public void onBackPressed() {
+                  if (webView.canGoBack()) webView.goBack();
+                  else super.onBackPressed();
+              }
+          }
+          ENDJAVA
+
+          echo "Project created"
+
+      - name: Build APK
+        run: |
           cd android-project
           gradle wrapper --gradle-version=8.5 2>&1 || true
-          [ -f gradlew ] && chmod +x gradlew || { curl -sLO https://services.gradle.org/distributions/gradle-8.5-bin.zip && unzip -q gradle-8.5-bin.zip -d /tmp/g && /tmp/g/gradle-8.5/bin/gradle wrapper --gradle-version=8.5; chmod +x gradlew; }
+          [ -f gradlew ] || { curl -sLO https://services.gradle.org/distributions/gradle-8.5-bin.zip && unzip -q gradle-8.5-bin.zip -d /tmp/g && /tmp/g/gradle-8.5/bin/gradle wrapper --gradle-version=8.5; }
+          chmod +x gradlew 2>/dev/null || true
           ./gradlew assembleRelease --no-daemon 2>&1
-      - name: Sign
+
+      - name: Sign APK
         run: |
           APK=$(find . -path "*/outputs/apk/release/app-release-unsigned.apk" -type f | head -1)
-          [ -z "$APK" ] && APK=$(find . -path "*/outputs/apk/release/*.apk" -type f | head -1)
-          echo "APK: $APK"
-          [ -z "$APK" ] && exit 1
+          [ -z "$APK" ] && APK=$(find . -name "*.apk" -type f | head -1)
+          [ -z "$APK" ] && { echo "No APK"; find . -name "*.apk"; exit 1; }
           BT=$(ls -d ${ANDROID_HOME}/build-tools/*/ | sort -r | head -1)
-          keytool -genkey -v -keystore ks.jks -alias k -keyalg RSA -keysize 2048 -storepass p -keypass p -dname "CN=P" -validity 10000 2>/dev/null
+          keytool -genkey -v -keystore k.jks -alias k -keyalg RSA -keysize 2048 -storepass p -keypass p -dname "CN=P" -validity 10000 2>/dev/null
           ${BT}zipalign -p 4 "$APK" "${APK%.apk}-a.apk" 2>&1
-          mv "${APK%.apk}-a.apk" "$APK"
-          ${BT}apksigner sign --ks ks.jks --ks-key-alias k --ks-pass pass:p --key-pass pass:p "$APK" 2>&1
+          mv -f "${APK%.apk}-a.apk" "$APK"
+          ${BT}apksigner sign --ks k.jks --ks-key-alias k --ks-pass pass:p --key-pass pass:p "$APK" 2>&1
           ${BT}apksigner verify --verbose "$APK" 2>&1
-          echo "DONE: $(stat -c%s "$APK") bytes"
+          echo "DONE=$(stat -c%s "$APK") bytes"
+
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: desktop-pet-apk
-          path: "**/apk/release/*.apk"
+          path: "**/outputs/apk/release/*.apk"
           if-no-files-found: error
