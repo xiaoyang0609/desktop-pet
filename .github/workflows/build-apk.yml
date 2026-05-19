@@ -28,20 +28,32 @@ jobs:
 
       - name: Generate Android project
         run: |
-          mkdir -p app-output
-          npm install @bubblewrap/core 2>&1 | tail -3
+          npm install @bubblewrap/core sharp 2>&1 | tail -3
 
           # Generate keystore
           keytool -genkey -v -keystore release.keystore -alias desktop-pet -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Pet, OU=Dev, O=Pet, L=Unknown, ST=Unknown, C=CN"
 
-          # Run inline Node.js to generate the project
+          # Convert icon SVG to PNG
           node -e "
-          const { TwaGenerator, TwaManifest } = require('@bubblewrap/core');
-          const path = require('path');
-          const fs = require('fs');
+          const https = require('https');
+          const sharp = require('sharp');
+          https.get('https://xiaoyang0609.github.io/desktop-pet/icon.svg', (res) => {
+            const chunks = [];
+            res.on('data', c => chunks.push(c));
+            res.on('end', () => {
+              sharp(Buffer.concat(chunks)).resize(512, 512).png().toFile('icon.png')
+                .then(() => console.log('✅ icon converted'))
+                .catch(e => { console.error('icon error:', e.message); process.exit(1); });
+            });
+          });
+          " 2>&1
 
-          const outputDir = path.join(process.cwd(), 'app-output');
-          const keyPath = path.join(process.cwd(), 'release.keystore');
+          mkdir -p app-output
+
+          node -e "
+          const { TwaGenerator, TwaManifest, ConsoleLog } = require('@bubblewrap/core');
+          const path = require('path');
+          const cwd = process.cwd();
 
           const manifest = new TwaManifest({
             packageId: 'com.desktop.pet',
@@ -55,11 +67,11 @@ jobs:
             backgroundColor: '#1a1a2e',
             appVersionName: '1.0',
             appVersionCode: 1,
-            iconUrl: 'https://xiaoyang0609.github.io/desktop-pet/pet_cat.png',
-            maskableIconUrl: 'https://xiaoyang0609.github.io/desktop-pet/pet_cat.png',
-            monochromeIconUrl: 'https://xiaoyang0609.github.io/desktop-pet/pet_cat.png',
+            iconUrl: path.join(cwd, 'icon.png'),
+            maskableIconUrl: path.join(cwd, 'icon.png'),
+            monochromeIconUrl: path.join(cwd, 'icon.png'),
             signingKey: {
-              path: keyPath,
+              path: path.join(cwd, 'release.keystore'),
               keyAlias: 'desktop-pet',
               keyPassword: 'android',
               storePassword: 'android',
@@ -76,37 +88,29 @@ jobs:
             appVersionIsAWebsite: false,
           });
 
-          const { ConsoleLog } = require('@bubblewrap/core');
           const generator = new TwaGenerator();
           const log = new ConsoleLog('generate');
-          generator.createTwaProject(outputDir, manifest, log).then(() =>
-            console.log('✅ TWA project generated in', outputDir)
-          ).catch((e) => {
-            console.error('❌ Error:', e.message);
-            console.error(e.stack);
-            process.exit(1);
-          });
+          const outputDir = path.join(cwd, 'app-output');
+          generator.createTwaProject(outputDir, manifest, log)
+            .then(() => console.log('✅ Project generated'))
+            .catch(e => { console.error('❌', e.message); process.exit(1); });
           " 2>&1
 
       - name: Build APK
         run: |
           cd app-output
-          echo "=== Files ==="
           ls -la
-          echo ""
           echo "=== Project files ==="
-          find . -name "*.gradle" -o -name "*.xml" -o -name "*.java" 2>/dev/null | head -20
-          echo ""
-          echo "=== Build ==="
+          find . -name "build.gradle" | head -5
+          echo "=== Building ==="
           chmod +x gradlew
-          ./gradlew assembleRelease 2>&1 || true
+          ./gradlew assembleRelease 2>&1
 
       - name: Find and upload APK
         run: |
-          echo "=== Find APK ==="
-          find /home/runner/work -name "*.apk" -type f 2>/dev/null
           find . -name "*.apk" -type f 2>/dev/null
-          find /home/runner -name "*.apk" -type f -exec ls -la {} \;
+          echo "---"
+          find /home/runner -name "*.apk" -type f 2>/dev/null || true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
